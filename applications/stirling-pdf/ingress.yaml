@@ -1,0 +1,23 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: stirling-pdf
+  namespace: stirling-pdf
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: stirling-pdf.homelab
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: stirling-pdf
+                port:
+                  number: 80

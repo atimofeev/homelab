@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: stirling-pdf
+  namespace: stirling-pdf
+  labels:
+    app: stirling-pdf
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stirling-pdf
+  template:
+    metadata:
+      labels:
+        app: stirling-pdf
+    spec:
+      containers:
+        - name: stirling-pdf
+          image: ghcr.io/stirling-tools/stirling-pdf:0.46.0
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: LANGS
+              value: en_GB
+            - name: DOCKER_ENABLE_SECURITY
+              value: "false"
+          volumeMounts:
+            - name: trainingdata
+              mountPath: /usr/share/tessdata
+            - name: extraconfigs
+              mountPath: /configs
+            - name: customfiles
+              mountPath: /customFiles
+            - name: logs
+              mountPath: logs
+            - name: pipeline
+              mountPath: pipeline
+      volumes:
+        - name: trainingdata
+          persistentVolumeClaim:
+            claimName: stirling-pdf-trainingdata
+        - name: extraconfigs
+          persistentVolumeClaim:
+            claimName: stirling-pdf-extraconfigs
+        - name: customfiles
+          persistentVolumeClaim:
+            claimName: stirling-pdf-customfiles
+        - name: logs
+          persistentVolumeClaim:
+            claimName: stirling-pdf-logs
+        - name: pipeline
+          persistentVolumeClaim:
+            claimName: stirling-pdf-pipeline
