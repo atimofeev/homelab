@@ -1,0 +1,38 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: convertx
+  namespace: convertx
+  labels:
+    app: convertx
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: convertx
+  template:
+    metadata:
+      labels:
+        app: convertx
+    spec:
+      containers:
+        - name: convertx
+          image: ghcr.io/c4illin/convertx:v0.12.1
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: HTTP_ALLOWED
+              value: "true"
+            - name: ALLOW_UNAUTHENTICATED
+              value: "true"
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: convertx-data
