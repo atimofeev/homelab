@@ -1,0 +1,34 @@
+---
+applications:
+
+  convertx:
+    project: default
+    source:
+      repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: applications/convertx
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: convertx
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+  stirling-pdf:
+    project: default
+    source:
+      repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: applications/stirling-pdf
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: stirling-pdf
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true

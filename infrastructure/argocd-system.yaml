@@ -1,0 +1,148 @@
+---
+applications:
+
+  cert-manager:
+    project: default
+    source:
+      repoURL: https://charts.jetstack.io
+      chart: cert-manager
+      targetRevision: 1.17.2
+      helm:
+        releaseName: cert-manager
+        valuesObject:
+          crds:
+            enabled: true
+            keep: false
+          prometheus:
+            servicemonitor:
+              enabled: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cert-manager
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+  metallb:
+    project: default
+    source:
+      repoURL: https://metallb.github.io/metallb
+      chart: metallb
+      targetRevision: 0.14.9
+      helm:
+        releaseName: metallb
+        valuesObject:
+          prometheus:
+            serviceAccount: kube-prometheus-stack-operator
+            namespace: monitoring
+            serviceMonitor:
+              enabled: true
+            prometheusRule:
+              enabled: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: metallb-system
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+  kube-prometheus-stack:
+    project: default
+    source:
+      repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 72.3.0
+      helm:
+        releaseName: kube-prometheus-stack
+        valuesObject:
+          alertmanager:
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              hosts: [alertmanager.k8s.homelab]
+          grafana:
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              hosts: [grafana.k8s.homelab]
+          prometheus:
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              hosts: [prometheus.k8s.homelab]
+            prometheusSpec:
+              podMonitorSelectorNilUsesHelmValues: false
+              ruleSelectorNilUsesHelmValues: false
+              serviceMonitorSelectorNilUsesHelmValues: false
+              probeSelectorNilUsesHelmValues: false
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: monitoring
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+
+  metrics-server:
+    project: default
+    source:
+      repoURL: https://kubernetes-sigs.github.io/metrics-server
+      chart: metrics-server
+      targetRevision: 3.12.2
+      helm:
+        releaseName: metrics-server
+        valuesObject:
+          # FIX: for self-signed certs
+          args: ["--kubelet-insecure-tls=true", "--kubelet-preferred-address-types=InternalIP"]
+          metrics:
+            enabled: true
+          serviceMonitor:
+            enabled: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: monitoring
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+  ingress-nginx:
+    project: default
+    source:
+      repoURL: https://kubernetes.github.io/ingress-nginx
+      chart: ingress-nginx
+      targetRevision: 4.12.2
+      helm:
+        releaseName: ingress-nginx
+        valuesObject:
+          controller:
+            ingressClassResource:
+              name: nginx
+              enabled: true
+              default: true
+            metrics:
+              enabled: true
+            serviceMonitor:
+              enabled: true
+            prometheusRule:
+              enabled: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: ingress
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
