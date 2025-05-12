@@ -11,7 +11,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: stirling-pdf.homelab
+    - host: stirling-pdf.k8s.homelab
       http:
         paths:
           - path: /
