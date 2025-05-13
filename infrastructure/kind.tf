@@ -9,6 +9,7 @@ resource "kind_cluster" "default" {
     node {
       role = "control-plane"
 
+      # NOTE: allow access for kube-prometheus monitoring
       kubeadm_config_patches = compact([<<EOF
 kind: ClusterConfiguration
 controllerManager:
