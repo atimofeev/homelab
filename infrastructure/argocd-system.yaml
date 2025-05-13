@@ -14,6 +14,7 @@ applications:
             enabled: true
             keep: false
           prometheus:
+            enabled: true
             servicemonitor:
               enabled: true
     destination:
