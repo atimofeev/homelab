@@ -3,6 +3,8 @@ locals {
 }
 
 resource "kubernetes_namespace" "argo_cd" {
+  depends_on = [kind_cluster.default]
+
   metadata {
     name = local.argocd-namespace
   }
