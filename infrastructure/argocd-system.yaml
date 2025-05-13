@@ -52,6 +52,22 @@ applications:
       syncOptions:
         - CreateNamespace=true
 
+  metallb-l2-ip-pool:
+    project: default
+    source:
+      repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: infrastructure/metallb
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: metallb-system
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
   kube-prometheus-stack:
     project: default
     source:
