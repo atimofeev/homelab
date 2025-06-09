@@ -12,6 +12,7 @@ resource "kubernetes_namespace" "argo_cd" {
 
 # TODO: change appearance theme to auto
 # TODO: add `system` project
+# TODO: add non-admin user without access to system
 resource "helm_release" "argo_cd" {
   depends_on = [kubernetes_namespace.argo_cd]
 
