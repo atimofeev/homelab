@@ -61,7 +61,9 @@ resource "helm_release" "argocd_apps" {
   version         = "2.0.2"
 
   values = [
-    file("./argocd-system.yaml"),
-    file("./argocd-apps.yaml")
+    file("./argo-apps/system-wave-1.yaml"),
+    file("./argo-apps/system-wave-2.yaml"),
+    file("./argo-apps/system-wave-3.yaml"),
+    file("./argo-apps/general.yaml"),
   ]
 }

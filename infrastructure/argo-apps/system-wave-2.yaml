@@ -1,0 +1,159 @@
+---
+applications:
+
+  cert-manager:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-9"
+    project: default
+    source:
+      repoURL: https://charts.jetstack.io
+      chart: cert-manager
+      targetRevision: 1.17.2
+      helm:
+        releaseName: cert-manager
+        valuesObject:
+          crds:
+            enabled: true
+            keep: false
+          prometheus:
+            enabled: true
+            servicemonitor:
+              enabled: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cert-manager
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+  metallb:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-9"
+    project: default
+    source:
+      repoURL: https://metallb.github.io/metallb
+      chart: metallb
+      targetRevision: 0.14.9
+      helm:
+        releaseName: metallb
+        valuesObject:
+          prometheus:
+            serviceAccount: kube-prometheus-stack-operator
+            namespace: monitoring
+            serviceMonitor:
+              enabled: true
+            prometheusRule:
+              enabled: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: metallb-system
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+  external-dns:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-9"
+    project: default
+    source:
+      repoURL: https://kubernetes-sigs.github.io/external-dns/
+      chart: external-dns
+      targetRevision: 1.17.0
+      helm:
+        releaseName: external-dns
+        valuesObject:
+          fullnameOverride: external-dns-mikrotik
+          logLevel: debug
+          logFormat: text
+          interval: 5s
+          sources: ["ingress", "service", "crd"]
+          registry: txt
+          txtOwnerId: default
+          txtPrefix: k8s.
+          domainFilters: []
+          excludeDomains: []
+          policy: sync
+          provider:
+            name: webhook
+            webhook:
+              image:
+                repository: ghcr.io/mirceanton/external-dns-provider-mikrotik
+                tag: v1.4.12
+                pullPolicy: IfNotPresent
+              envFrom:
+                - secretRef:
+                    name: mikrotik-credentials
+              env:
+                - name: LOG_FORMAT
+                  value: json
+                - name: LOG_LEVEL
+                  value: debug
+                - name: MIKROTIK_DEFAULT_TTL
+                  value: "1800"
+                - name: MIKROTIK_DEFAULT_COMMENT
+                  value: Managed by ExternalDNS
+              livenessProbe:
+                httpGet:
+                  path: /healthz
+                  port: http-webhook
+                initialDelaySeconds: 10
+                timeoutSeconds: 5
+              readinessProbe:
+                httpGet:
+                  path: /readyz
+                  port: http-webhook
+                initialDelaySeconds: 10
+                timeoutSeconds: 5
+          serviceMonitor:
+            enabled: true
+          extraArgs:
+            - --ignore-ingress-tls-spec
+            - --managed-record-types=A
+            - --managed-record-types=AAAA
+            - --managed-record-types=CNAME
+            - --managed-record-types=TXT
+            - --managed-record-types=MX
+            - --managed-record-types=SRV
+            - --managed-record-types=NS
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: external-dns
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+  metrics-server:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-9"
+    project: default
+    source:
+      repoURL: https://kubernetes-sigs.github.io/metrics-server
+      chart: metrics-server
+      targetRevision: 3.12.2
+      helm:
+        releaseName: metrics-server
+        valuesObject:
+          # FIX: for self-signed certs
+          args: ["--kubelet-insecure-tls=true", "--kubelet-preferred-address-types=InternalIP"]
+          metrics:
+            enabled: true
+          serviceMonitor:
+            enabled: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: monitoring
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true

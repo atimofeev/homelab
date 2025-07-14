@@ -1,0 +1,20 @@
+---
+applications:
+
+  metallb-l2-ip-pool:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-8"
+    project: default
+    source:
+      repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: infrastructure/metallb
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: metallb
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true

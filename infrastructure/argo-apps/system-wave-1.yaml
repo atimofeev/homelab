@@ -1,0 +1,135 @@
+---
+applications:
+
+  external-secrets:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-10"
+    project: default
+    source:
+      repoURL: https://charts.external-secrets.io
+      chart: external-secrets
+      targetRevision: 0.18.2
+      helm:
+        releaseName: external-secrets
+        valuesObject:
+          leaderElect: true
+          serviceMonitor:
+            enabled: true
+          grafanaDashboard:
+            enabled: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: external-secrets
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+  ingress-nginx:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-10"
+    project: default
+    source:
+      repoURL: https://kubernetes.github.io/ingress-nginx
+      chart: ingress-nginx
+      targetRevision: 4.12.2
+      helm:
+        releaseName: ingress-nginx
+        valuesObject:
+          controller:
+            ingressClassResource:
+              name: nginx
+              enabled: true
+              default: true
+            metrics:
+              enabled: true
+              serviceMonitor:
+                enabled: true
+              prometheusRule:
+                enabled: true
+                rules:
+                  - alert: NGINXConfigFailed
+                    expr: count(nginx_ingress_controller_config_last_reload_successful == 0) > 0
+                    for: 1s
+                    labels:
+                      severity: critical
+                    annotations:
+                      description: bad ingress config - nginx config test failed
+                      summary: uninstall the latest ingress changes to allow config reloads to resume
+                  - alert: NGINXCertificateExpiry
+                    expr: (avg(nginx_ingress_controller_ssl_expire_time_seconds{host!="_"}) by (host) - time()) < 604800
+                    for: 1s
+                    labels:
+                      severity: critical
+                    annotations:
+                      description: ssl certificate(s) will expire in less then a week
+                      summary: renew expiring certificates to avoid downtime
+                  - alert: NGINXTooMany500s
+                    expr: 100 * ( sum( nginx_ingress_controller_requests{status=~"5.+"} ) / sum(nginx_ingress_controller_requests) ) > 5
+                    for: 1m
+                    labels:
+                      severity: warning
+                    annotations:
+                      description: Too many 5XXs
+                      summary: More than 5% of all requests returned 5XX, this requires your attention
+                  - alert: NGINXTooMany400s
+                    expr: 100 * ( sum( nginx_ingress_controller_requests{status=~"4.+"} ) / sum(nginx_ingress_controller_requests) ) > 5
+                    for: 1m
+                    labels:
+                      severity: warning
+                    annotations:
+                      description: Too many 4XXs
+                      summary: More than 5% of all requests returned 4XX, this requires your attention
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: ingress
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+  kube-prometheus-stack:
+    project: default
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-10"
+    source:
+      repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 72.3.0
+      helm:
+        releaseName: kube-prometheus-stack
+        valuesObject:
+          alertmanager:
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              hosts: [alertmanager.k8s.homelab]
+          grafana:
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              hosts: [grafana.k8s.homelab]
+          prometheus:
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              hosts: [prometheus.k8s.homelab]
+            prometheusSpec:
+              podMonitorSelectorNilUsesHelmValues: false
+              ruleSelectorNilUsesHelmValues: false
+              serviceMonitorSelectorNilUsesHelmValues: false
+              probeSelectorNilUsesHelmValues: false
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: monitoring
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
