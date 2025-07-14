@@ -4,7 +4,7 @@ kind: IPAddressPool
 
 metadata:
   name: default
-  namespace: metallb-system
+  namespace: metallb
 
 spec:
   addresses:

@@ -49,7 +49,7 @@ applications:
               enabled: true
     destination:
       server: https://kubernetes.default.svc
-      namespace: metallb-system
+      namespace: metallb
     syncPolicy:
       automated:
         prune: true
