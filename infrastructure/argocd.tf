@@ -16,12 +16,11 @@ resource "kubernetes_namespace" "argo_cd" {
 resource "helm_release" "argo_cd" {
   depends_on = [kubernetes_namespace.argo_cd]
 
-  chart           = "argo-cd"
-  name            = "argo-cd"
-  namespace       = local.argocd-namespace
-  repository      = "https://argoproj.github.io/argo-helm"
-  upgrade_install = true
-  version         = "8.0.0"
+  chart      = "argo-cd"
+  name       = "argo-cd"
+  namespace  = local.argocd-namespace
+  repository = "https://argoproj.github.io/argo-helm"
+  version    = "8.0.0"
 
   set {
     name  = "crds.keep"
@@ -53,12 +52,11 @@ resource "helm_release" "argo_cd" {
 resource "helm_release" "argocd_apps" {
   depends_on = [kubernetes_namespace.argo_cd, helm_release.argo_cd]
 
-  chart           = "argocd-apps"
-  name            = "argocd-apps"
-  namespace       = local.argocd-namespace
-  repository      = "https://argoproj.github.io/argo-helm"
-  upgrade_install = true
-  version         = "2.0.2"
+  chart      = "argocd-apps"
+  name       = "argocd-apps"
+  namespace  = local.argocd-namespace
+  repository = "https://argoproj.github.io/argo-helm"
+  version    = "2.0.2"
 
   values = [
     file("./argo-apps/system-wave-1.yaml"),
