@@ -9,12 +9,15 @@ spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     email: prosto-dev+legalaze94@gmail.com
-    # profile: tlsserver
+    profile: tlsserver
     privateKeySecretRef:
       name: prosto-dev-staging
     solvers:
-      - dns01:
-          cloudflare:
-            apiTokenSecretRef:
-              name: cloudflare-prosto-dev-dns-token
-              key: api-token
+      - http01:
+          ingress:
+            ingressClassName: nginx
+      # - dns01:
+      #     cloudflare:
+      #       apiTokenSecretRef:
+      #         name: cloudflare-prosto-dev-dns-token
+      #         key: api-token
