@@ -107,17 +107,17 @@ applications:
             ingress:
               enabled: true
               ingressClassName: nginx
-              hosts: [alertmanager.k8s.homelab]
+              hosts: [alertmanager.prosto.dev]
           grafana:
             ingress:
               enabled: true
               ingressClassName: nginx
-              hosts: [grafana.k8s.homelab]
+              hosts: [grafana.prosto.dev]
           prometheus:
             ingress:
               enabled: true
               ingressClassName: nginx
-              hosts: [prometheus.k8s.homelab]
+              hosts: [prometheus.prosto.dev]
             prometheusSpec:
               podMonitorSelectorNilUsesHelmValues: false
               ruleSelectorNilUsesHelmValues: false

@@ -29,7 +29,7 @@ resource "helm_release" "argo_cd" {
 
   set {
     name  = "global.domain"
-    value = "argocd.k8s.homelab"
+    value = "argocd.prosto.dev"
   }
 
   set_list {

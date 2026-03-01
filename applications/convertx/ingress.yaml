@@ -11,7 +11,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: convertx.k8s.homelab
+    - host: convertx.prosto.dev
       http:
         paths:
           - path: /
