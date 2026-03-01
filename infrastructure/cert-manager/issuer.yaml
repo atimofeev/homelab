@@ -12,11 +12,8 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-staging
     solvers:
-      - http01:
-          ingress:
-            ingressClassName: nginx
-      # - dns01:
-      #     cloudflare:
-      #       apiTokenSecretRef:
-      #         name: cloudflare-prosto-dev-dns-token
-      #         key: api-token
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-prosto-dev-dns-token
+              key: api-token
