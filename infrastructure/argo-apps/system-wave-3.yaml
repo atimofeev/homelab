@@ -18,3 +18,21 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
+
+  cert-manager-issuer:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-8"
+    project: default
+    source:
+      repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: infrastructure/cert-manager
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true

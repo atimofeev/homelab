@@ -1,0 +1,20 @@
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+
+metadata:
+  name: prosto-dev
+
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: prosto-dev+legalaze94@gmail.com
+    # profile: tlsserver
+    privateKeySecretRef:
+      name: prosto-dev-staging
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-prosto-dev-dns-token
+              key: api-token
