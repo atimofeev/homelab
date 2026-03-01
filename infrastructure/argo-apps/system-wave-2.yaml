@@ -160,3 +160,37 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
+
+  longhorn:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-9"
+    project: default
+    source:
+      repoURL: https://charts.longhorn.io
+      chart: longhorn
+      targetRevision: 1.11.0
+      helm:
+        releaseName: longhorn
+        valuesObject:
+          preUpgradeChecker:
+            jobEnabled: false
+          ingress:
+            enabled: true
+            host: longhorn.prosto.dev
+            ingressClassName: nginx
+            secureBackends: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: longhorn-system
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      managedNamespaceMetadata:
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
+          pod-security.kubernetes.io/audit: privileged
+          pod-security.kubernetes.io/warn: privileged
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
