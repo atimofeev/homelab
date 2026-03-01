@@ -9,7 +9,6 @@ spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     email: prosto-dev+legalaze94@gmail.com
-    profile: tlsserver
     privateKeySecretRef:
       name: prosto-dev-staging
     solvers:
