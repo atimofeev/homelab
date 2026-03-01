@@ -32,11 +32,6 @@ resource "helm_release" "argo_cd" {
     value = "argocd.prosto.dev"
   }
 
-  set_list {
-    name  = "server.extraArgs"
-    value = ["--insecure"]
-  }
-
   set {
     name  = "server.ingress.enabled"
     value = true
@@ -45,6 +40,11 @@ resource "helm_release" "argo_cd" {
   set {
     name  = "server.ingress.ingressClassName"
     value = "nginx"
+  }
+
+  set {
+    name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/backend-protocol"
+    value = "HTTPS"
   }
 
 }

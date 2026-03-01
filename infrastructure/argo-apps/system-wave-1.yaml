@@ -39,10 +39,14 @@ applications:
         releaseName: ingress-nginx
         valuesObject:
           controller:
+            config:
+              ssl-redirect: true
             ingressClassResource:
               name: nginx
               enabled: true
               default: true
+            extraArgs:
+              default-ssl-certificate: "ingress/prosto-dev-wildcard-tls"
             metrics:
               enabled: true
               serviceMonitor:
