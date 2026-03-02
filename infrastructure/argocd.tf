@@ -20,7 +20,7 @@ resource "helm_release" "argo_cd" {
   name       = "argo-cd"
   namespace  = local.argocd-namespace
   repository = "https://argoproj.github.io/argo-helm"
-  version    = "8.0.0"
+  version    = "9.4.6"
 
   set {
     name  = "crds.keep"
@@ -56,7 +56,7 @@ resource "helm_release" "argocd_apps" {
   name       = "argocd-apps"
   namespace  = local.argocd-namespace
   repository = "https://argoproj.github.io/argo-helm"
-  version    = "2.0.2"
+  version    = "2.0.4"
 
   values = [
     file("./argo-apps/system-wave-1.yaml"),
