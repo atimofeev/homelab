@@ -89,9 +89,6 @@ applications:
                 repository: ghcr.io/mirceanton/external-dns-provider-mikrotik
                 tag: v1.5.13
                 pullPolicy: IfNotPresent
-              envFrom:
-                - secretRef:
-                    name: mikrotik-credentials
               env:
                 - name: LOG_FORMAT
                   value: json
@@ -101,6 +98,26 @@ applications:
                   value: "1800"
                 - name: MIKROTIK_DEFAULT_COMMENT
                   value: Managed by ExternalDNS
+                - name: MIKROTIK_BASEURL
+                  valueFrom:
+                    secretKeyRef:
+                      name: mikrotik-credentials
+                      key: MIKROTIK_BASEURL
+                - name: MIKROTIK_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: mikrotik-credentials
+                      key: MIKROTIK_USERNAME
+                - name: MIKROTIK_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: mikrotik-credentials
+                      key: MIKROTIK_PASSWORD
+                - name: MIKROTIK_SKIP_TLS_VERIFY
+                  valueFrom:
+                    secretKeyRef:
+                      name: mikrotik-credentials
+                      key: MIKROTIK_SKIP_TLS_VERIFY
               livenessProbe:
                 httpGet:
                   path: /healthz
