@@ -87,7 +87,7 @@ applications:
             webhook:
               image:
                 repository: ghcr.io/mirceanton/external-dns-provider-mikrotik
-                tag: v1.4.12
+                tag: v1.5.13
                 pullPolicy: IfNotPresent
               envFrom:
                 - secretRef:
