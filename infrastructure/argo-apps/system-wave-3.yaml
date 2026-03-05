@@ -54,3 +54,21 @@ applications:
         selfHeal: true
       syncOptions:
         - CreateNamespace=true
+
+  blocky:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-8"
+    project: default
+    source:
+      repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: infrastructure/blocky
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: blocky
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true

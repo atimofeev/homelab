@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: blocky
+  namespace: blocky
+  labels:
+    app: blocky
+
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: blocky
+  template:
+    metadata:
+      labels:
+        app: blocky
+    spec:
+      containers:
+        - name: blocky
+          image: ghcr.io/0xerr0r/blocky:v0.29.0
+          ports:
+            - containerPort: 53
+              name: dns-tcp
+              protocol: TCP
+            - containerPort: 53
+              name: dns-udp
+              protocol: UDP
+            - containerPort: 4000
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yml
+              subPath: config.yml
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: blocky-config
