@@ -17,15 +17,15 @@ applications:
       syncOptions:
         - CreateNamespace=true
 
-  stirling-pdf:
+  vert:
     project: default
     source:
       repoURL: https://github.com/atimofeev/homelab
       targetRevision: HEAD
-      path: applications/stirling-pdf
+      path: applications/vert
     destination:
       server: https://kubernetes.default.svc
-      namespace: stirling-pdf
+      namespace: vert
     syncPolicy:
       automated:
         prune: true
