@@ -1,0 +1,26 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: bento-pdf
+  namespace: bento-pdf
+  labels:
+    app: bento-pdf
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bento-pdf
+  template:
+    metadata:
+      labels:
+        app: bento-pdf
+    spec:
+      containers:
+        - name: bento-pdf
+          image: ghcr.io/alam00000/bentopdf-simple:sha-90998ed
+          ports:
+            - containerPort: 8080
+              name: http

@@ -1,15 +1,15 @@
 ---
 applications:
 
-  convertx:
+  bento-pdf:
     project: default
     source:
       repoURL: https://github.com/atimofeev/homelab
       targetRevision: HEAD
-      path: applications/convertx
+      path: applications/bento-pdf
     destination:
       server: https://kubernetes.default.svc
-      namespace: convertx
+      namespace: bento-pdf
     syncPolicy:
       automated:
         prune: true

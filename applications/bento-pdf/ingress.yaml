@@ -3,21 +3,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 
 metadata:
-  name: stirling-pdf
-  namespace: stirling-pdf
+  name: bento-pdf
+  namespace: bento-pdf
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: 50m
 
 spec:
   ingressClassName: nginx
   rules:
-    - host: stirling-pdf.prosto.dev
+    - host: bento-pdf.prosto.dev
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: stirling-pdf
+                name: bento-pdf
                 port:
                   number: 80
