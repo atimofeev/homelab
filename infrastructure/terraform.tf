@@ -3,11 +3,6 @@ terraform {
 
   required_providers {
 
-    kind = {
-      source  = "tehcyx/kind"
-      version = "~> 0.8.0"
-    }
-
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "2.36.0"
@@ -22,11 +17,11 @@ terraform {
 }
 
 provider "kubernetes" {
-  config_path = kind_cluster.default.kubeconfig_path
+  config_path = "~/.kube/homelab.yml"
 }
 
 provider "helm" {
   kubernetes {
-    config_path = kind_cluster.default.kubeconfig_path
+    config_path = "~/.kube/homelab.yml"
   }
 }
