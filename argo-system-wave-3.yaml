@@ -8,7 +8,7 @@ applications:
     source:
       repoURL: https://github.com/atimofeev/homelab
       targetRevision: HEAD
-      path: infrastructure/metallb
+      path: apps/metallb
     destination:
       server: https://kubernetes.default.svc
       namespace: metallb
@@ -26,7 +26,7 @@ applications:
     source:
       repoURL: https://github.com/atimofeev/homelab
       targetRevision: HEAD
-      path: infrastructure/cert-manager
+      path: apps/cert-manager
     destination:
       server: https://kubernetes.default.svc
       namespace: cert-manager
@@ -44,7 +44,7 @@ applications:
     source:
       repoURL: https://github.com/atimofeev/homelab
       targetRevision: HEAD
-      path: infrastructure/longhorn
+      path: apps/longhorn
     destination:
       server: https://kubernetes.default.svc
       namespace: longhorn-system
@@ -62,7 +62,7 @@ applications:
     source:
       repoURL: https://github.com/atimofeev/homelab
       targetRevision: HEAD
-      path: infrastructure/blocky
+      path: apps/blocky
     destination:
       server: https://kubernetes.default.svc
       namespace: blocky
