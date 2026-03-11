@@ -18,6 +18,12 @@ variable "talos_cluster_name" {
   description = "The name of the Talos cluster."
 }
 
+variable "talos_config_patches" {
+  type        = any
+  default     = null
+  description = "A list of YAML-encoded configuration patches to apply to the machine configuration."
+}
+
 variable "talos_image_extensions" {
   type        = list(string)
   default     = []
@@ -27,10 +33,4 @@ variable "talos_image_extensions" {
 variable "talos_version" {
   type        = string
   description = "The version of Talos features to use in generated machine configuration"
-}
-
-variable "talos_config_patches" {
-  type        = any
-  default     = null
-  description = "A list of YAML-encoded configuration patches to apply to the machine configuration."
 }
