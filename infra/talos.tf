@@ -28,7 +28,7 @@ resource "local_sensitive_file" "kubeconfig" {
 }
 
 data "talos_machine_configuration" "this" {
-  for_each = { for node in var.nodes : node.ip => node }
+  for_each = { for node in var.nodes : node.mac => node }
 
   cluster_name     = var.talos_cluster_name
   machine_type     = each.value.type
@@ -50,7 +50,7 @@ resource "local_sensitive_file" "talosconfig" {
 }
 
 resource "talos_machine_configuration_apply" "this" {
-  for_each = { for node in var.nodes : node.ip => node }
+  for_each = { for node in var.nodes : node.mac => node }
 
   client_configuration        = talos_machine_secrets.this.client_configuration
   machine_configuration_input = data.talos_machine_configuration.this[each.key].machine_configuration
