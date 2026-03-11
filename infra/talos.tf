@@ -21,6 +21,12 @@ resource "talos_cluster_kubeconfig" "this" {
   node                 = local.node_ips[0]
 }
 
+resource "local_sensitive_file" "kubeconfig" {
+  content         = talos_cluster_kubeconfig.this.kubeconfig_raw
+  filename        = pathexpand(var.kubeconfig_path)
+  file_permission = "0600"
+}
+
 data "talos_machine_configuration" "this" {
   for_each = { for node in var.nodes : node.ip => node }
 
@@ -31,9 +37,16 @@ data "talos_machine_configuration" "this" {
 }
 
 data "talos_client_configuration" "this" {
-  cluster_name         = var.talos_cluster_name
   client_configuration = talos_machine_secrets.this.client_configuration
+  cluster_name         = var.talos_cluster_name
+  endpoints            = local.node_ips
   nodes                = local.node_ips
+}
+
+resource "local_sensitive_file" "talosconfig" {
+  content         = data.talos_client_configuration.this.talos_config
+  filename        = pathexpand(var.talosconfig_path)
+  file_permission = "0600"
 }
 
 resource "talos_machine_configuration_apply" "this" {

@@ -3,6 +3,12 @@ variable "domain" {
   description = "Domain name hosted in Cloudflare"
 }
 
+variable "kubeconfig_path" {
+  type        = string
+  default     = "./kubeconfig"
+  description = "The path to the kubeconfig file to write."
+}
+
 variable "nodes" {
   type = list(object({
     ip   = string
@@ -33,4 +39,10 @@ variable "talos_image_extensions" {
 variable "talos_version" {
   type        = string
   description = "The version of Talos features to use in generated machine configuration"
+}
+
+variable "talosconfig_path" {
+  type        = string
+  default     = "./talosconfig"
+  description = "The path to the kubeconfig file to write."
 }

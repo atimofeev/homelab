@@ -1,4 +1,6 @@
 domain             = "prosto.dev"
+kubeconfig_path    = "~/.kube/homelab.yml"
+talosconfig_path   = "~/.talos/config"
 talos_cluster_name = "homelab"
 talos_config_patches = [
   ({
