@@ -17,7 +17,7 @@ talos_config_patches = [
     }
   }),
   ({
-    machine = {
+    cluster = {
       allowSchedulingOnControlPlanes = true
     }
   })
