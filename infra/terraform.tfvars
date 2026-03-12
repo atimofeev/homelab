@@ -24,7 +24,8 @@ talos_config_patches = [
   })
 ]
 talos_version          = "v1.12.4"
-talos_image_extensions = ["siderolabs/iscsi-tools", "siderolabs/util-linux-tools"] # NOTE: longhorn
+talos_image_extensions  = ["siderolabs/iscsi-tools", "siderolabs/util-linux-tools"] # NOTE: longhorn
+talos_image_kernel_args = ["reboot=pci"]
 nodes = [
   {
     ip   = "192.168.88.254"

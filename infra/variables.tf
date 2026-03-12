@@ -41,6 +41,12 @@ variable "talos_image_extensions" {
   description = "A list of Talos extension names to include in the machine image."
 }
 
+variable "talos_image_kernel_args" {
+  type        = list(string)
+  default     = []
+  description = "A list of additional kernel arguments to include in the machine image."
+}
+
 variable "talos_version" {
   type        = string
   description = "The version of Talos features to use in generated machine configuration"

@@ -13,11 +13,14 @@ data "talos_image_factory_extensions_versions" "this" {
 resource "talos_image_factory_schematic" "this" {
   schematic = yamlencode(
     {
-      customization = {
-        systemExtensions = {
-          officialExtensions = data.talos_image_factory_extensions_versions.this.extensions_info.*.name
-        }
-      }
+      customization = merge(
+        {
+          systemExtensions = {
+            officialExtensions = data.talos_image_factory_extensions_versions.this.extensions_info.*.name
+          }
+        },
+        length(var.talos_image_kernel_args) > 0 ? { extraKernelArgs = var.talos_image_kernel_args } : {}
+      )
     }
   )
 }
