@@ -9,6 +9,11 @@ variable "kubeconfig_path" {
   description = "The path to the kubeconfig file to write."
 }
 
+variable "kubernetes_version" {
+  type        = string
+  description = "The Kubernetes version to use."
+}
+
 variable "nodes" {
   type = list(object({
     ip   = string

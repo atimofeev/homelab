@@ -2,6 +2,7 @@ domain             = "prosto.dev"
 kubeconfig_path    = "~/.kube/homelab.yml"
 talosconfig_path   = "~/.talos/config"
 talos_cluster_name = "homelab"
+kubernetes_version = "v1.34.0"
 talos_config_patches = [
   ({
     machine = {

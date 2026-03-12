@@ -48,10 +48,12 @@ resource "local_sensitive_file" "kubeconfig" {
 data "talos_machine_configuration" "this" {
   for_each = { for node in var.nodes : node.mac => node }
 
-  cluster_name     = var.talos_cluster_name
-  machine_type     = each.value.type
-  cluster_endpoint = local.cluster_endpoint
-  machine_secrets  = talos_machine_secrets.this.machine_secrets
+  cluster_endpoint   = local.cluster_endpoint
+  cluster_name       = var.talos_cluster_name
+  kubernetes_version = var.kubernetes_version
+  machine_secrets    = talos_machine_secrets.this.machine_secrets
+  machine_type       = each.value.type
+  talos_version      = var.talos_version
 }
 
 data "talos_client_configuration" "this" {
