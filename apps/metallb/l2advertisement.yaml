@@ -4,7 +4,7 @@ kind: L2Advertisement
 
 metadata:
   name: default
-  namespace: metallb
+  namespace: metallb-system
 
 spec:
   ipAddressPools:
