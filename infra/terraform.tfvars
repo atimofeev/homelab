@@ -28,21 +28,21 @@ talos_image_extensions  = ["siderolabs/iscsi-tools", "siderolabs/util-linux-tool
 talos_image_kernel_args = ["reboot=pci"]
 nodes = [
   {
-    ip   = "192.168.88.254"
-    mac  = "F4:39:09:2B:B5:24"
+    ip   = "192.168.88.252"
+    mac  = "10:E7:C6:07:0B:F5"
     disk = "/dev/sda"
     type = "controlplane"
   },
   {
-    ip   = "192.168.88.250"
+    ip   = "192.168.88.254"
     mac  = "10:E7:C6:11:C0:82"
     disk = "/dev/sda"
     type = "controlplane"
   },
   {
-    ip   = "192.168.88.249"
-    mac  = "10:E7:C6:07:0B:F5"
+    ip   = "192.168.88.253"
+    mac  = "F4:39:09:2B:B5:24"
     disk = "/dev/sda"
     type = "controlplane"
-  }
+  },
 ]
