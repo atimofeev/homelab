@@ -113,6 +113,13 @@ applications:
               ingressClassName: nginx
               hosts: [alertmanager.prosto.dev]
           grafana:
+            admin:
+              existingSecret: grafana-admin
+              userKey: admin-user
+              passwordKey: admin-password
+            persistence:
+              enabled: true
+              size: 10Gi
             ingress:
               enabled: true
               ingressClassName: nginx
