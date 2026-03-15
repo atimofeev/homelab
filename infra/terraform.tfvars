@@ -12,7 +12,6 @@ talos_config_patches = [
           # NOTE: longhorn
           { name = "nbd" },
           { name = "iscsi_tcp" },
-          { name = "iscsi_generic" },
           { name = "configfs" },
         ]
       }
