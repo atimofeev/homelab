@@ -21,6 +21,15 @@ talos_config_patches = [
     cluster = {
       allowSchedulingOnControlPlanes = true
     }
+  }),
+  ({
+    machine = {
+      nodeLabels = {
+        "node.kubernetes.io/exclude-from-external-load-balancers" = {
+          "$patch" = "delete"
+        }
+      }
+    }
   })
 ]
 talos_image_extensions  = ["siderolabs/iscsi-tools", "siderolabs/util-linux-tools"] # NOTE: longhorn
