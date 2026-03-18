@@ -82,6 +82,32 @@ resource "talos_machine_configuration_apply" "this" {
     [for patch in var.talos_config_patches : yamlencode(patch)],
     [
       yamlencode({
+        cluster = {
+          inlineManifests = [
+            {
+              name     = "external-secrets-namespace"
+              contents = <<-EOT
+              apiVersion: v1
+              kind: namespace
+              metadata:
+                name: external-secrets
+            EOT
+            },
+            {
+              name     = "external-secrets-token"
+              contents = <<-EOT
+              apiVersion: v1
+              kind: Secret
+              type: Opaque
+              metadata:
+                name: external-secrets-token
+                namespace: external-secrets
+              data:
+                token: ${base64encode(var.external_secrets_main_token)}
+            EOT
+            }
+          ]
+        }
         machine = {
           install = {
             disk  = each.value.disk

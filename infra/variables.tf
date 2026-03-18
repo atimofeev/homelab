@@ -3,6 +3,12 @@ variable "domain" {
   description = "Domain name hosted in Cloudflare"
 }
 
+variable "external_secrets_main_token" {
+  type        = string
+  default     = ""
+  description = "API token for main ESO SecretStore"
+}
+
 variable "kubeconfig_path" {
   type        = string
   default     = "./kubeconfig"
