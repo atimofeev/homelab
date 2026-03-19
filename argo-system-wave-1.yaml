@@ -12,6 +12,8 @@ applications:
       helm:
         releaseName: external-secrets
         valuesObject:
+          bitwarden-sdk-server:
+            enabled: true
           leaderElect: true
           serviceMonitor:
             enabled: true
