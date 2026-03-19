@@ -1,0 +1,14 @@
+---
+externalSecrets:
+  storeName: bitwarden-secrets-manager
+  refreshInterval: 1h0m0s
+  secrets:
+    - name: cloudflare-dns-rw
+      namespace: external-dns
+      bitwardenKey: "a39916d1-750d-492f-b158-b41101576a1c"
+    - name: grafana-admin
+      namespace: monitoring
+      bitwardenKey: "fab4989d-41bf-4eec-8bab-b411015ad92e"
+    - name: mikrotik-dns-rw
+      namespace: external-dns
+      bitwardenKey: "5a36f7a5-4e90-4bcd-b7b0-b411015a4f8f"

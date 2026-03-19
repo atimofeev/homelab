@@ -1,0 +1,4 @@
+---
+apiVersion: v2
+name: my-external-secrets-bitwarden
+version: 1.0.0
