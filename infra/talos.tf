@@ -31,9 +31,7 @@ data "talos_image_factory_urls" "this" {
   platform      = "metal"
 }
 
-resource "talos_machine_secrets" "this" {
-  talos_version = var.talos_version
-}
+resource "talos_machine_secrets" "this" {}
 
 resource "talos_cluster_kubeconfig" "this" {
   client_configuration = talos_machine_secrets.this.client_configuration
