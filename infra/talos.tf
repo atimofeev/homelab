@@ -31,12 +31,10 @@ data "talos_image_factory_urls" "this" {
   platform      = "metal"
 }
 
-# ephemeral "talos_machine_secrets" "this" {
 resource "talos_machine_secrets" "this" {
   talos_version = var.talos_version
 }
 
-# ephemeral "talos_cluster_kubeconfig" "this" {
 resource "talos_cluster_kubeconfig" "this" {
   client_configuration = talos_machine_secrets.this.client_configuration
   node                 = local.node_ips[0]
