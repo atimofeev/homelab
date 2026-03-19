@@ -19,6 +19,24 @@ applications:
       syncOptions:
         - CreateNamespace=true
 
+  external-secrets:
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "-8"
+    project: default
+    source:
+      repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/external-secrets
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: external-secrets
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
   cert-manager-issuer:
     additionalAnnotations:
       argocd.argoproj.io/sync-wave: "-8"
