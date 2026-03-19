@@ -13,3 +13,4 @@ The infrastructure management is divided into several components:
 ## Inspiration
 
 - https://github.com/hcloud-k8s/terraform-hcloud-kubernetes/
+- https://github.com/rafaribe/home-ops/
