@@ -1,0 +1,27 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: blocky
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-8"
+
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/atimofeev/homelab
+    targetRevision: HEAD
+    path: apps/blocky
+    directory:
+      exclude: main.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: blocky
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

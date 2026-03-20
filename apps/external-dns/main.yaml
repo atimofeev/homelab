@@ -1,0 +1,97 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: external-dns
+  annotations:
+    argocd.argoproj.io/sync-wave: "-9"
+
+spec:
+  project: default
+  source:
+    repoURL: https://kubernetes-sigs.github.io/external-dns/
+    chart: external-dns
+    targetRevision: 1.20.0
+    helm:
+      releaseName: external-dns
+      valuesObject:
+        fullnameOverride: external-dns-mikrotik
+        logLevel: debug
+        logFormat: text
+        interval: 5s
+        sources: ["ingress", "service", "crd"]
+        registry: txt
+        txtOwnerId: default
+        txtPrefix: k8s.
+        domainFilters: []
+        excludeDomains: []
+        policy: sync
+        provider:
+          name: webhook
+          webhook:
+            image:
+              repository: ghcr.io/mirceanton/external-dns-provider-mikrotik
+              tag: v1.5.13
+              pullPolicy: IfNotPresent
+            env:
+              - name: LOG_FORMAT
+                value: json
+              - name: LOG_LEVEL
+                value: debug
+              - name: MIKROTIK_DEFAULT_TTL
+                value: "1800"
+              - name: MIKROTIK_DEFAULT_COMMENT
+                value: Managed by ExternalDNS
+              - name: MIKROTIK_BASEURL
+                valueFrom:
+                  secretKeyRef:
+                    name: mikrotik-dns-rw
+                    key: MIKROTIK_BASEURL
+              - name: MIKROTIK_USERNAME
+                valueFrom:
+                  secretKeyRef:
+                    name: mikrotik-dns-rw
+                    key: MIKROTIK_USERNAME
+              - name: MIKROTIK_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: mikrotik-dns-rw
+                    key: MIKROTIK_PASSWORD
+              - name: MIKROTIK_SKIP_TLS_VERIFY
+                valueFrom:
+                  secretKeyRef:
+                    name: mikrotik-dns-rw
+                    key: MIKROTIK_SKIP_TLS_VERIFY
+            livenessProbe:
+              httpGet:
+                path: /healthz
+                port: http-webhook
+              initialDelaySeconds: 10
+              timeoutSeconds: 5
+            readinessProbe:
+              httpGet:
+                path: /readyz
+                port: http-webhook
+              initialDelaySeconds: 10
+              timeoutSeconds: 5
+        serviceMonitor:
+          enabled: true
+        extraArgs:
+          - --ignore-ingress-tls-spec
+          - --managed-record-types=A
+          - --managed-record-types=AAAA
+          - --managed-record-types=CNAME
+          - --managed-record-types=TXT
+          - --managed-record-types=MX
+          - --managed-record-types=SRV
+          - --managed-record-types=NS
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: external-dns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

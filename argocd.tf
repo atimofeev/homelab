@@ -54,9 +54,35 @@ resource "helm_release" "argocd_apps" {
   version    = "2.0.4"
 
   values = [
-    file("./argo-system-wave-1.yaml"),
-    file("./argo-system-wave-2.yaml"),
-    file("./argo-system-wave-3.yaml"),
-    file("./argo-general.yaml"),
+    yamlencode({
+      applications = {
+        argocd-apps = {
+          namespace = local.argocd-namespace
+          project   = "default"
+          source = {
+            repoURL        = "https://github.com/atimofeev/homelab"
+            targetRevision = "HEAD"
+            path           = "apps"
+            directory = {
+              recurse = true
+              include = "*/main.yaml"
+            }
+          }
+          destination = {
+            server    = "https://kubernetes.default.svc"
+            namespace = local.argocd-namespace
+          }
+          syncPolicy = {
+            automated = {
+              prune    = true
+              selfHeal = true
+            }
+          }
+          syncOptions = [
+            "CreateNamespace=true"
+          ]
+        }
+      }
+    })
   ]
 }

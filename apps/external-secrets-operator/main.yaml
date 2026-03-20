@@ -1,0 +1,35 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: external-secrets-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+
+spec:
+  project: default
+  source:
+    repoURL: https://charts.external-secrets.io
+    chart: external-secrets
+    targetRevision: 2.0.1
+    helm:
+      releaseName: external-secrets
+      valuesObject:
+        bitwarden-sdk-server:
+          enabled: true
+        leaderElect: true
+        serviceMonitor:
+          enabled: true
+        grafanaDashboard:
+          enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: external-secrets
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

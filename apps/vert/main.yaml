@@ -1,0 +1,24 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: vert
+
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/atimofeev/homelab
+    targetRevision: HEAD
+    path: apps/vert
+    directory:
+      exclude: main.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vert
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
