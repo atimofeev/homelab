@@ -1,0 +1,35 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: homer-operator
+
+spec:
+  project: default
+  source:
+    repoURL: oci://ghcr.io/rajsinghtech/homer-operator/charts/homer-operator
+    chart: homer-operator
+    targetRevision: 1.1.0
+    helm:
+      releaseName: homer-operator
+      valuesObject:
+        operator:
+          metrics:
+            rbacProxy:
+              image:
+                repository: bitnami/kube-rbac-proxy
+                tag: latest
+        prometheusRule:
+          enabled: true
+        grafanaDashboard:
+          enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: homer
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
