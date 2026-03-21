@@ -20,7 +20,7 @@ spec:
         logLevel: debug
         logFormat: text
         interval: 5s
-        sources: ["ingress", "service", "crd"]
+        sources: ["ingress", "service", "crd", "gateway-httproute"]
         registry: txt
         txtOwnerId: default
         txtPrefix: k8s.
