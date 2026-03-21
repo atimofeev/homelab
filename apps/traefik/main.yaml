@@ -19,6 +19,11 @@ spec:
         providers:
           kubernetesGateway:
             enabled: true
+        gateway:
+          listeners:
+            web:
+              namespacePolicy:
+                from: All
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
