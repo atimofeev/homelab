@@ -16,6 +16,10 @@ spec:
     helm:
       releaseName: traefik
       valuesObject:
+        providers:
+          kubernetesGateway:
+            enabled: true
+            experimentalChannel: true
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
