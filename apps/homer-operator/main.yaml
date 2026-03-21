@@ -15,6 +15,7 @@ spec:
       releaseName: homer-operator
       valuesObject:
         operator:
+          enableGatewayAPI: true
           metrics:
             rbacProxy:
               image:
