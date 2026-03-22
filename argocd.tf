@@ -17,30 +17,25 @@ resource "helm_release" "argo_cd" {
   repository = "https://argoproj.github.io/argo-helm"
   version    = "9.4.6"
 
-  set {
-    name  = "crds.keep"
-    value = false
-  }
-
-  set {
-    name  = "global.domain"
-    value = "argocd.prosto.dev"
-  }
-
-  set {
-    name  = "server.ingress.enabled"
-    value = true
-  }
-
-  set {
-    name  = "server.ingress.ingressClassName"
-    value = "nginx"
-  }
-
-  set {
-    name  = "server.ingress.annotations.nginx\\.ingress\\.kubernetes\\.io/backend-protocol"
-    value = "HTTPS"
-  }
+  values = [
+    yamlencode({
+      crds = {
+        keepj = false
+      }
+      global = {
+        domain = "argocd.prosto.dev"
+      }
+      server = {
+        ingress = {
+          enabled          = true
+          ingressClassName = "nginx"
+          annotations = {
+            "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
+          }
+        }
+      }
+    })
+  ]
 
 }
 
