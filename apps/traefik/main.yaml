@@ -24,6 +24,16 @@ spec:
             web:
               namespacePolicy:
                 from: All
+            websecure:
+              port: 8443
+              protocol: HTTPS
+              namespacePolicy:
+                from: All
+              certificateRefs:
+                - name: prosto-dev-wildcard-tls
+                  group: ""
+                  kind: Secret
+                  namespace: ingress
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
