@@ -23,6 +23,12 @@ spec:
           host: longhorn.prosto.dev
           ingressClassName: nginx
           secureBackends: true
+          annotations:
+            item.homer.rajsingh.info/name: "Longhorn"
+            item.homer.rajsingh.info/subtitle: "Distributed Storage"
+            item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/longhorn.webp"
+            service.homer.rajsingh.info/name: "System"
+            service.homer.rajsingh.info/icon: "fas fa-cogs"
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
