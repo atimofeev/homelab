@@ -21,6 +21,12 @@ spec:
             enabled: true
             ingressClassName: nginx
             hosts: [alertmanager.prosto.dev]
+            annotations:
+              item.homer.rajsingh.info/name: "Alertmanager"
+              item.homer.rajsingh.info/subtitle: "Monitoring Alerts Management"
+              item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/alertmanager.webp"
+              service.homer.rajsingh.info/name: "Observability"
+              service.homer.rajsingh.info/icon: "fas fa-eye"
         grafana:
           admin:
             existingSecret: grafana-admin
@@ -33,11 +39,23 @@ spec:
             enabled: true
             ingressClassName: nginx
             hosts: [grafana.prosto.dev]
+            annotations:
+              item.homer.rajsingh.info/name: "Grafana"
+              item.homer.rajsingh.info/subtitle: "Monitoring Dashboards"
+              item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/grafana.webp"
+              service.homer.rajsingh.info/name: "Observability"
+              service.homer.rajsingh.info/icon: "fas fa-eye"
         prometheus:
           ingress:
             enabled: true
             ingressClassName: nginx
             hosts: [prometheus.prosto.dev]
+            annotations:
+              item.homer.rajsingh.info/name: "Prometheus"
+              item.homer.rajsingh.info/subtitle: "Metrics TSDB"
+              item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/prometheus.webp"
+              service.homer.rajsingh.info/name: "Observability"
+              service.homer.rajsingh.info/icon: "fas fa-eye"
           prometheusSpec:
             podMonitorSelectorNilUsesHelmValues: false
             ruleSelectorNilUsesHelmValues: false
