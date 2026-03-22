@@ -7,6 +7,11 @@ metadata:
   namespace: bento-pdf
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    item.homer.rajsingh.info/name: "BentoPDF"
+    item.homer.rajsingh.info/subtitle: "PDF Tools"
+    item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/bentopdf.webp"
+    service.homer.rajsingh.info/name: "Tools"
+    service.homer.rajsingh.info/icon: "fas fa-screwdriver-wrench"
 
 spec:
   parentRefs:
