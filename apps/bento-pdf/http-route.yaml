@@ -6,7 +6,6 @@ metadata:
   name: bento-pdf
   namespace: bento-pdf
   annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: 50m
     item.homer.rajsingh.info/name: "BentoPDF"
     item.homer.rajsingh.info/subtitle: "PDF Tools"
     item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/bentopdf.webp"
