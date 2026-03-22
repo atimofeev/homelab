@@ -5,6 +5,12 @@ kind: HTTPRoute
 metadata:
   name: vert
   namespace: vert
+  annotations:
+    item.homer.rajsingh.info/name: "Vert"
+    item.homer.rajsingh.info/subtitle: "File Converter"
+    item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/selfhst/icons@main/webp/vert.webp"
+    service.homer.rajsingh.info/name: "Tools"
+    service.homer.rajsingh.info/icon: "fas fa-screwdriver-wrench"
 
 spec:
   parentRefs:
