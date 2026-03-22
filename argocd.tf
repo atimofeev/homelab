@@ -31,6 +31,11 @@ resource "helm_release" "argo_cd" {
           ingressClassName = "nginx"
           annotations = {
             "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
+            "item.homer.rajsingh.info/name"                = "ArgoCD"
+            "item.homer.rajsingh.info/subtitle"            = "GitOps Continuous Delivery"
+            "item.homer.rajsingh.info/logo"                = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/argo-cd.webp"
+            "service.homer.rajsingh.info/name"             = "System"
+            "service.homer.rajsingh.info/icon"             = "fas fa-cogs"
           }
         }
       }
