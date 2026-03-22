@@ -11,8 +11,6 @@ metadata:
     item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/homer.webp"
     service.homer.rajsingh.info/name: "Observability"
     service.homer.rajsingh.info/icon: "fas fa-eye"
-  labels:
-    app-group: "observability"
 
 spec:
   parentRefs:
