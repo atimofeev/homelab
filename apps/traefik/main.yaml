@@ -33,7 +33,6 @@ spec:
                 - name: prosto-dev-wildcard-tls
                   group: ""
                   kind: Secret
-                  namespace: ingress
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
