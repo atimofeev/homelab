@@ -5,6 +5,8 @@ kind: Service
 metadata:
   name: blocky
   namespace: blocky
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.88.50
 
 spec:
   type: LoadBalancer
