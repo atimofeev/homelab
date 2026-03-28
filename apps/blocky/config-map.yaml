@@ -13,13 +13,13 @@ data:
     upstreams:
       groups:
         default:
-          - 192.168.88.1
-          - 1.1.1.1
-          - 8.8.8.8
+          - tcp-tls:1.1.1.1:853
+          - tcp-tls:8.8.8.8:853
     blocking:
       denylists:
         ads:
           - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+          - https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/pro.txt
       clientGroupsBlock:
         default:
           - ads
