@@ -5,6 +5,9 @@ kind: Service
 metadata:
   name: blocky
   namespace: blocky
+  labels:
+    app.kubernetes.io/instance: blocky
+    app.kubernetes.io/name: blocky
   annotations:
     metallb.universe.tf/loadBalancerIPs: 192.168.88.50
 
