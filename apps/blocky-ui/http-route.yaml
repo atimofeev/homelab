@@ -1,0 +1,28 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+
+metadata:
+  name: blocky-ui
+  namespace: blocky
+  annotations:
+    item.homer.rajsingh.info/name: "Blocky UI"
+    item.homer.rajsingh.info/subtitle: "Blocky Control & Stats"
+    item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/blocky.webp"
+    service.homer.rajsingh.info/name: "Observability"
+    service.homer.rajsingh.info/icon: "fas fa-eye"
+
+spec:
+  parentRefs:
+    - name: traefik-gateway
+      namespace: traefik
+  hostnames:
+    - "blocky-ui.prosto.dev"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: blocky-ui
+          port: 80

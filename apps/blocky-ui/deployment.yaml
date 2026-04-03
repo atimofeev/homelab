@@ -1,0 +1,38 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: blocky-ui
+  namespace: blocky
+  labels:
+    app: blocky-ui
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: blocky-ui
+  template:
+    metadata:
+      labels:
+        app: blocky-ui
+    spec:
+      containers:
+        - name: blocky-ui
+          image: ghcr.io/gabeduartem/blocky-ui:1.6.1
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          env:
+            - name: BLOCKY_API_URL
+              value: http://blocky:4000
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
