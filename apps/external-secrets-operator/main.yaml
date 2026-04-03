@@ -18,6 +18,8 @@ spec:
       valuesObject:
         bitwarden-sdk-server:
           enabled: true
+          podAnnotations:
+            reloader.stakater.com/auto: "true"
         leaderElect: true
         serviceMonitor:
           enabled: true
