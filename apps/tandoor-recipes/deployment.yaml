@@ -1,0 +1,130 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: tandoor-recipes
+  namespace: tandoor-recipes
+  labels:
+    app: tandoor-recipes
+
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tandoor-recipes
+  template:
+    metadata:
+      labels:
+        app: tandoor-recipes
+    spec:
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 65534
+        runAsUser: 65534
+        runAsNonRoot: true
+      initContainers:
+        - name: init-migrate-collectstatic
+          image: vabene1111/recipes:2.6.4
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 250m
+              memory: 64Mi
+          env:
+            - name: SECRET_KEY
+              value: test
+            - name: DB_ENGINE
+              value: django.db.backends.postgresql
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cnpg-tandoor-recipes-app
+                  key: fqdn-uri
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              source venv/bin/activate
+              echo "Updating database"
+              python manage.py migrate
+              python manage.py collectstatic --noinput
+              echo "Done"
+          volumeMounts:
+            - mountPath: /opt/recipes/mediafiles
+              name: media
+              subPath: files
+            - mountPath: /opt/recipes/staticfiles
+              name: static
+              subPath: files
+      containers:
+        - name: recipes
+          image: vabene1111/recipes:2.6.4
+          imagePullPolicy: IfNotPresent
+          command:
+            - /opt/recipes/venv/bin/gunicorn
+            - -b
+            - :8080
+            - --access-logfile
+            - "-"
+            - --error-logfile
+            - "-"
+            - --log-level
+            - INFO
+            - recipes.wsgi
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          volumeMounts:
+            - mountPath: /opt/recipes/mediafiles
+              name: media
+              subPath: files
+            - mountPath: /opt/recipes/staticfiles
+              name: static
+              subPath: files
+          env:
+            - name: DEBUG
+              value: "1"
+            - name: ALLOWED_HOSTS
+              value: '*'
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cnpg-tandoor-recipes-app
+                  key: password
+            - name: GUNICORN_MEDIA
+              value: "1"
+            - name: DB_ENGINE
+              value: django.db.backends.postgresql
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cnpg-tandoor-recipes-app
+                  key: fqdn-uri
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: recipes-media
+        - name: static
+          persistentVolumeClaim:
+            claimName: recipes-static

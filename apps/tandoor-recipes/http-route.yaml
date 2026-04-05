@@ -1,0 +1,28 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+
+metadata:
+  name: tandoor-recipes
+  namespace: tandoor-recipes
+  annotations:
+    item.homer.rajsingh.info/name: "Tandoor Recipes"
+    item.homer.rajsingh.info/subtitle: "Recipes, meals, shopping lists and more!"
+    item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/tandoor-recipes.webp"
+    service.homer.rajsingh.info/name: "Tools"
+    service.homer.rajsingh.info/icon: "fas fa-screwdriver-wrench"
+
+spec:
+  parentRefs:
+    - name: traefik-gateway
+      namespace: traefik
+  hostnames:
+    - tandoor.prosto.dev
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: tandoor-recipes
+          port: 8080

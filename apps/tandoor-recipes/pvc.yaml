@@ -1,0 +1,33 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+  name: recipes-media
+  namespace: tandoor-recipes
+  labels:
+    app: tandoor-recipes
+
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+  name: recipes-static
+  namespace: tandoor-recipes
+  labels:
+    app: tandoor-recipes
+
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

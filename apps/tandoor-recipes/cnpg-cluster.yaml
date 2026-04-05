@@ -1,0 +1,16 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+
+metadata:
+  name: cnpg-tandoor-recipes
+  namespace: tandoor-recipes
+
+spec:
+  instances: 3
+  storage:
+    size: 2Gi
+  bootstrap:
+    initdb:
+      database: recipes
+      owner: recipes
