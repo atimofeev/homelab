@@ -1,0 +1,25 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: homer-dashboard
+  namespace: argocd
+
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/atimofeev/homelab
+    targetRevision: HEAD
+    path: apps/homer-dashboard
+    directory:
+      exclude: main.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: homer
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
