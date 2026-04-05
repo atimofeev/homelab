@@ -4,6 +4,7 @@ kind: Application
 
 metadata:
   name: cnpg-operator
+  namespace: argocd
 
 spec:
   project: default

@@ -4,6 +4,7 @@ kind: Application
 
 metadata:
   name: bento-pdf
+  namespace: argocd
 
 spec:
   project: default

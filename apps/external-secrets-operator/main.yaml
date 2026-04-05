@@ -4,6 +4,7 @@ kind: Application
 
 metadata:
   name: external-secrets-operator
+  namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
 

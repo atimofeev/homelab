@@ -4,6 +4,7 @@ kind: Application
 
 metadata:
   name: homer-operator
+  namespace: argocd
 
 spec:
   project: default

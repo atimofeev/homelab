@@ -4,6 +4,7 @@ kind: Application
 
 metadata:
   name: cert-manager
+  namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-9"
 

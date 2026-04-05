@@ -4,6 +4,7 @@ kind: Application
 
 metadata:
   name: vert
+  namespace: argocd
 
 spec:
   project: default

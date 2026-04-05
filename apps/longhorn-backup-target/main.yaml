@@ -4,6 +4,7 @@ kind: Application
 
 metadata:
   name: longhorn-backup-target
+  namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-8"
 
