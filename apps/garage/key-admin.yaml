@@ -1,0 +1,24 @@
+---
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageKey
+
+metadata:
+  name: admin
+  namespace: garage
+
+spec:
+  clusterRef:
+    name: garage
+  name: "Admin Key"
+  secretTemplate:
+    name: admin-s3-credentials
+    accessKeyIdKey: AWS_ACCESS_KEY_ID
+    secretAccessKeyKey: AWS_SECRET_ACCESS_KEY
+    endpointKey: S3_ENDPOINT
+    regionKey: AWS_REGION
+    includeEndpoint: true
+    includeRegion: true
+  allBuckets:
+    read: true
+    write: true
+    owner: true
