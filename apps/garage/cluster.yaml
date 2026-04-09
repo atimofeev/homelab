@@ -33,3 +33,5 @@ spec:
     adminTokenSecretRef:
       name: garage-admin-token
       key: admin-token
+  monitoring:
+    enabled: true
