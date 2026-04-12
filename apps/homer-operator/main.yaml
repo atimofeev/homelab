@@ -5,6 +5,8 @@ kind: Application
 metadata:
   name: homer-operator
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
 
 spec:
   project: default

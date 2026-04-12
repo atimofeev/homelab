@@ -5,6 +5,8 @@ kind: Application
 metadata:
   name: blocky-ui
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 
 spec:
   project: default

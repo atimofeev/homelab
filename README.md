@@ -26,4 +26,10 @@ This repository manages a Kubernetes-based homelab environment using a declarati
 
 1. **Infrastructure:** Navigate to `infra/`, initialize with `tofu init`, and apply configurations.
 2. **Cluster Access:** Use the appropriate `talosconfig` to interact with nodes.
-3. **GitOps:** ArgoCD is bootstrapped via `argocd.tf`. It automatically synchronizes applications defined in `apps/` that contain a `main.yaml`.
+3. **GitOps:** ArgoCD is bootstrapped via `argocd.tf`. It synchronizes applications in `apps/` based on defined sync waves:
+   - **-25** External Secrets Operator, cert-manager
+   - **-20** Secrets & Cert resources
+   - **-15** Ingress & Gateway-API
+   - **-10** Core operators
+   - **-5** Core resources
+   - **0** Applications
