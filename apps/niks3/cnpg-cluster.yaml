@@ -1,0 +1,16 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+
+metadata:
+  name: cnpg-niks3
+  namespace: niks3
+
+spec:
+  instances: 3
+  storage:
+    size: 2Gi
+  bootstrap:
+    initdb:
+      database: niks3
+      owner: niks3

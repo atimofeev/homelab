@@ -1,0 +1,28 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: niks3
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/atimofeev/homelab
+    targetRevision: HEAD
+    path: apps/niks3
+    directory:
+      exclude: main.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: niks3
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

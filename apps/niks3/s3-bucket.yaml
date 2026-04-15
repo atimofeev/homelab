@@ -1,0 +1,13 @@
+---
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageBucket
+
+metadata:
+  name: nix-binary-cache
+  namespace: niks3
+
+spec:
+  clusterRef:
+    name: garage-niks3
+  quotas:
+    maxSize: 15Gi

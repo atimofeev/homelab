@@ -1,0 +1,37 @@
+---
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageCluster
+
+metadata:
+  name: garage-niks3
+  namespace: niks3
+
+spec:
+  replicas: 3
+  image: dxflrs/garage:v2.2.0
+  zone: homelab
+  layoutManagement:
+    autoApply: true
+  replication:
+    factor: 1
+    consistencyMode: consistent
+  storage:
+    metadata:
+      size: 5Gi
+    data:
+      size: 50Gi
+  network:
+    rpcBindPort: 3901
+    service:
+      type: LoadBalancer
+  s3Api:
+    bindPort: 3900
+    region: garage
+  admin:
+    enabled: true
+    bindPort: 3903
+    adminTokenSecretRef:
+      name: garage-admin-token
+      key: admin-token
+  monitoring:
+    enabled: true

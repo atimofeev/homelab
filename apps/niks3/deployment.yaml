@@ -1,0 +1,82 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: niks3
+  namespace: niks3
+  labels:
+    app: niks3
+
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: niks3
+  template:
+    metadata:
+      labels:
+        app: niks3
+    spec:
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 65534
+        runAsUser: 65534
+        runAsNonRoot: true
+      containers:
+        - name: niks3
+          image: ghcr.io/mic92/niks3:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5751
+              name: http
+          volumeMounts:
+            - name: niks3-signing-key
+              mountPath: /secrets
+              readOnly: true
+          env:
+            - name: NIKS3_DB
+              valueFrom:
+                secretKeyRef:
+                  name: cnpg-niks3-app
+                  key: fqdn-uri
+            - name: NIKS3_S3_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: nix-binary-cache-s3-credentials
+                  key: host
+            - name: NIKS3_S3_BUCKET
+              value: nix-binary-cache
+            - name: NIKS3_S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nix-binary-cache-s3-credentials
+                  key: AWS_ACCESS_KEY_ID
+            - name: NIKS3_S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nix-binary-cache-s3-credentials
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: NIKS3_S3_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: nix-binary-cache-s3-credentials
+                  key: AWS_REGION
+            - name: NIKS3_S3_USE_SSL
+              value: "false"
+            - name: NIKS3_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: nixs3-secrets
+                  key: api-token
+            - name: NIKS3_SIGN_KEY_PATHS
+              value: "/secrets/signing-key"
+      volumes:
+        - name: niks3-signing-key
+          secret:
+            secretName: nixs3-secrets
+            items:
+              - key: signing-key
+                path: signing-key

@@ -1,0 +1,25 @@
+---
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageKey
+
+metadata:
+  name: nix-binary-cache
+  namespace: niks3
+
+spec:
+  clusterRef:
+    name: garage-niks3
+  name: "Nix Binary Cache Bucket Key"
+  secretTemplate:
+    name: nix-binary-cache-s3-credentials
+    accessKeyIdKey: AWS_ACCESS_KEY_ID
+    secretAccessKeyKey: AWS_SECRET_ACCESS_KEY
+    endpointKey: S3_ENDPOINT
+    regionKey: AWS_REGION
+    includeEndpoint: true
+    includeRegion: true
+  bucketPermissions:
+    - bucketRef: nix-binary-cache
+      read: true
+      write: true
+      owner: true

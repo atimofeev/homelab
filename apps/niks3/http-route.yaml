@@ -1,0 +1,28 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+
+metadata:
+  name: niks3
+  namespace: niks3
+  annotations:
+    item.homer.rajsingh.info/name: "NikS3"
+    item.homer.rajsingh.info/subtitle: "Nix S3 Binary Cache"
+    item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/nixos.webp"
+    service.homer.rajsingh.info/name: "System"
+    service.homer.rajsingh.info/icon: "fas fa-cogs"
+
+spec:
+  parentRefs:
+    - name: traefik-gateway
+      namespace: traefik
+  hostnames:
+    - "nix-cache.prosto.dev"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: niks3
+          port: 5751

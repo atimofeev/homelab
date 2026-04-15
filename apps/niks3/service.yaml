@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: niks3
+  namespace: niks3
+
+spec:
+  selector:
+    app: niks3
+  ports:
+    - protocol: TCP
+      port: 5751
+      targetPort: 5751
+      name: http
