@@ -10,19 +10,25 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: oci://ghcr.io/rajsinghtech/charts/garage-operator
-    chart: garage-operator
-    targetRevision: 0.2.8
-    helm:
-      releaseName: garage-operator
-      valuesObject:
-        serviceMonitor:
-          enabled: true
-        grafanaDashboard:
-          enabled: true
-        prometheusRules:
-          enabled: true
+  sources:
+    - repoURL: oci://ghcr.io/rajsinghtech/charts/garage-operator
+      chart: garage-operator
+      targetRevision: 0.2.8
+      helm:
+        releaseName: garage-operator
+        valuesObject:
+          serviceMonitor:
+            enabled: true
+          grafanaDashboard:
+            enabled: true
+          prometheusRules:
+            enabled: true
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/garage-operator
+      directory:
+        exclude: main.yaml
+
   destination:
     server: https://kubernetes.default.svc
     namespace: garage
