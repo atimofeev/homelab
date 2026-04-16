@@ -43,10 +43,7 @@ spec:
                   name: cnpg-niks3-app
                   key: fqdn-uri
             - name: NIKS3_S3_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                  name: nix-binary-cache-s3-credentials
-                  key: host
+              value: s3.prosto.dev
             - name: NIKS3_S3_BUCKET
               value: nix-binary-cache
             - name: NIKS3_S3_ACCESS_KEY
@@ -65,7 +62,7 @@ spec:
                   name: nix-binary-cache-s3-credentials
                   key: AWS_REGION
             - name: NIKS3_S3_USE_SSL
-              value: "false"
+              value: "true"
             - name: NIKS3_API_TOKEN
               valueFrom:
                 secretKeyRef:
