@@ -63,6 +63,8 @@ spec:
                   key: AWS_REGION
             - name: NIKS3_S3_USE_SSL
               value: "true"
+            - name: NIKS3_ENABLE_READ_PROXY
+              value: "true"
             - name: NIKS3_API_TOKEN
               valueFrom:
                 secretKeyRef:
