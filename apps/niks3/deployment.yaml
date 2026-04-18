@@ -27,7 +27,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: niks3
-          image: ghcr.io/mic92/niks3:latest
+          image: ghcr.io/mic92/niks3:v1.4.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5751
