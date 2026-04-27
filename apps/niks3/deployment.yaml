@@ -68,14 +68,14 @@ spec:
             - name: NIKS3_API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: nixs3-secrets
+                  name: niks3-secrets
                   key: api-token
             - name: NIKS3_SIGN_KEY_PATHS
               value: "/secrets/signing-key"
       volumes:
         - name: niks3-signing-key
           secret:
-            secretName: nixs3-secrets
+            secretName: niks3-secrets
             items:
               - key: signing-key
                 path: signing-key
