@@ -4,7 +4,7 @@ externalSecrets:
   refreshInterval: 1h0m0s
   secrets:
     - name: cloudflare-dns-rw
-      namespace: external-dns
+      namespace: cert-manager
       bitwardenKey: "a39916d1-750d-492f-b158-b41101576a1c"
     - name: mikrotik-dns-rw
       namespace: external-dns
