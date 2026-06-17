@@ -62,6 +62,51 @@ spec:
             ruleSelectorNilUsesHelmValues: false
             serviceMonitorSelectorNilUsesHelmValues: false
             probeSelectorNilUsesHelmValues: false
+        additionalPrometheusRules:
+          - name: cert-manager-alerts
+            groups:
+              - name: cert-manager
+                rules:
+                  - alert: CertManagerCertificateExpiringSoon
+                    expr: |
+                      certmanager_certificate_expiration_timestamp_seconds - time() < 86400 * 14
+                      and
+                      certmanager_certificate_expiration_timestamp_seconds - time() > 0
+                    for: 1h
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: "Certificate {{ $labels.name }}/{{ $labels.namespace }} expires in less than 14 days"
+                  - alert: CertManagerCertificateExpiringCritical
+                    expr: |
+                      certmanager_certificate_expiration_timestamp_seconds - time() < 86400 * 3
+                      and
+                      certmanager_certificate_expiration_timestamp_seconds - time() > 0
+                    for: 1h
+                    labels:
+                      severity: critical
+                    annotations:
+                      summary: "Certificate {{ $labels.name }}/{{ $labels.namespace }} expires in less than 3 days"
+                  - alert: CertManagerCertificateExpired
+                    expr: |
+                      certmanager_certificate_expiration_timestamp_seconds - time() < 0
+                    for: 5m
+                    labels:
+                      severity: critical
+                    annotations:
+                      summary: "Certificate {{ $labels.name }}/{{ $labels.namespace }} has expired"
+          - name: external-secrets-alerts
+            groups:
+              - name: external-secrets
+                rules:
+                  - alert: ExternalSecretSyncError
+                    expr: |
+                      externalsecret_status_condition{condition="Ready",status="False"} == 1
+                    for: 15m
+                    labels:
+                      severity: critical
+                    annotations:
+                      summary: "ExternalSecret {{ $labels.name }}/{{ $labels.namespace }} sync has failed"
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
