@@ -9,7 +9,13 @@ metadata:
 spec:
   instances: 3
   storage:
+    size: 5Gi
+  walStorage:
     size: 2Gi
+  postgresql:
+    parameters:
+      wal_keep_size: "128MB"
+      max_wal_size: "512MB"
   bootstrap:
     initdb:
       database: atuin
