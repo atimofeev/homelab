@@ -7,6 +7,7 @@ variable "external_secrets_main_token" {
   type        = string
   default     = ""
   description = "API token for main ESO SecretStore"
+  sensitive   = true
 }
 
 variable "kubeconfig_path" {
