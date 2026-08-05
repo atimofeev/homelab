@@ -13,12 +13,14 @@ spec:
   source:
     repoURL: https://charts.longhorn.io
     chart: longhorn
-    targetRevision: 1.10.2
+    targetRevision: 1.12.0
     helm:
       releaseName: longhorn
       valuesObject:
         preUpgradeChecker:
           jobEnabled: false
+        defaultSettings:
+          concurrentAutomaticEngineUpgradePerNodeLimit: "1"
         ingress:
           enabled: true
           host: longhorn.prosto.dev
