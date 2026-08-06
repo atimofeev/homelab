@@ -1,18 +1,17 @@
 data "cloudflare_zone" "this" {
-  filter {
+  filter = {
     name   = var.domain
     status = "active"
-    paused = false
   }
 }
 
 resource "cloudflare_dns_record" "routeros_ddns" {
-  zone_id = data.cloudflare_zone.this.zone_id
-  name    = "homelab-ingress.${var.dns_zone_name}"
+  zone_id = data.cloudflare_zone.this.id
+  name    = "homelab-ingress.${var.domain}"
   ttl     = 1
   type    = "CNAME"
   comment = "RouterOS Cloud DDNS name"
-  content = data.routeros_ip_cloud.this.dns_name
+  content = routeros_ip_cloud.this.dns_name
   proxied = false
 }
 
