@@ -17,11 +17,11 @@ terraform {
 }
 
 provider "kubernetes" {
-  config_path = "~/.kube/homelab.yml"
+  config_path = "~/.kube/homelab.yaml"
 }
 
 provider "helm" {
   kubernetes {
-    config_path = "~/.kube/homelab.yml"
+    config_path = "~/.kube/homelab.yaml"
   }
 }
