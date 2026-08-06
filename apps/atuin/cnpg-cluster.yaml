@@ -8,6 +8,7 @@ metadata:
 
 spec:
   instances: 3
+  maxSyncReplicas: 1
   storage:
     size: 5Gi
   walStorage:
