@@ -33,3 +33,10 @@ resource "routeros_ip_cloud" "this" {
   ddns_enabled         = "yes"
   ddns_update_interval = "15m"
 }
+
+resource "routeros_ip_dhcp_server_lease" "this" {
+  for_each = { for node in var.nodes : node.mac => node }
+
+  address     = each.value.ip
+  mac_address = each.value.mac
+}
