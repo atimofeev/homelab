@@ -25,6 +25,20 @@ resource "talos_image_factory_schematic" "this" {
   )
 }
 
+# iPXE netboot-only schematic: wipes EPHEMERAL+STATE on boot
+resource "talos_image_factory_schematic" "ipxe" {
+  schematic = yamlencode(
+    {
+      customization = {
+        systemExtensions = {
+          officialExtensions = data.talos_image_factory_extensions_versions.this.extensions_info.*.name
+        }
+        extraKernelArgs = concat(var.talos_image_kernel_args, ["talos.experimental.wipe=system:EPHEMERAL,STATE"])
+      }
+    }
+  )
+}
+
 data "talos_image_factory_urls" "this" {
   talos_version = var.talos_version
   schematic_id  = talos_image_factory_schematic.this.id

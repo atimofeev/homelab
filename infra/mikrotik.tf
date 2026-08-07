@@ -40,3 +40,53 @@ resource "routeros_ip_dhcp_server_lease" "this" {
   address     = each.value.ip
   mac_address = each.value.mac
 }
+
+locals {
+  talos_pxe_url = "https://pxe.factory.talos.dev/pxe/${talos_image_factory_schematic.ipxe.id}/${var.talos_version}/metal-amd64"
+}
+
+# iPXE/netboot DHCP options (see homelab issue #6)
+resource "routeros_ip_dhcp_server_option" "ipxe_uefi" {
+  name  = "ipxe-uefi"
+  code  = 67
+  value = "'ipxe.efi'"
+}
+
+resource "routeros_ip_dhcp_server_option" "talos_script" {
+  name  = "talos-script"
+  code  = 67
+  value = "'${local.talos_pxe_url}'"
+}
+
+resource "routeros_ip_dhcp_server_option_sets" "pxe_bios" {
+  name    = "pxe-bios"
+  options = "ipxe-uefi"
+}
+
+resource "routeros_ip_dhcp_server_option_sets" "pxe_uefi" {
+  name    = "pxe-uefi"
+  options = "ipxe-uefi"
+}
+
+resource "routeros_ip_dhcp_server_option_sets" "set_talos" {
+  name    = "set-talos"
+  options = "talos-script"
+}
+
+resource "routeros_ip_dhcp_server_option_matcher" "ipxe_stage2" {
+  name          = "0_ipxe_stage2"
+  server        = "defconf"
+  option_set    = "set-talos"
+  code          = 77
+  value         = "0x69505845"
+  matching_type = "substring"
+}
+
+resource "routeros_ip_dhcp_server_option_matcher" "uefi_stage1" {
+  name          = "1_uefi_stage1"
+  server        = "defconf"
+  option_set    = "pxe-uefi"
+  code          = 93
+  value         = "0x0007"
+  matching_type = "exact"
+}
