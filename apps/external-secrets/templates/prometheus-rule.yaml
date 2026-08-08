@@ -19,4 +19,4 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "ExternalSecret {{ $labels.name }}/{{ $labels.namespace }} sync has failed"
+            summary: 'ExternalSecret {{ printf "{{ $labels.name }}" }}/{{ printf "{{ $labels.namespace }}" }} sync has failed'
