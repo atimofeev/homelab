@@ -1,0 +1,27 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: storage
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/atimofeev/homelab
+    targetRevision: HEAD
+    path: apps/arr-stack/storage
+    directory:
+      exclude: main-arr.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: arr-stack
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
