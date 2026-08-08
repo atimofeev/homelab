@@ -1,0 +1,42 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+  labels:
+    app.kubernetes.io/part-of: cert-manager
+
+spec:
+  groups:
+    - name: cert-manager
+      rules:
+        - alert: CertManagerCertificateExpiringSoon
+          expr: |
+            certmanager_certificate_expiration_timestamp_seconds - time() < 86400 * 14
+            and
+            certmanager_certificate_expiration_timestamp_seconds - time() > 0
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Certificate {{ $labels.name }}/{{ $labels.namespace }} expires in less than 14 days"
+        - alert: CertManagerCertificateExpiringCritical
+          expr: |
+            certmanager_certificate_expiration_timestamp_seconds - time() < 86400 * 3
+            and
+            certmanager_certificate_expiration_timestamp_seconds - time() > 0
+          for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: "Certificate {{ $labels.name }}/{{ $labels.namespace }} expires in less than 3 days"
+        - alert: CertManagerCertificateExpired
+          expr: |
+            certmanager_certificate_expiration_timestamp_seconds - time() < 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Certificate {{ $labels.name }}/{{ $labels.namespace }} has expired"

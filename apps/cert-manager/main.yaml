@@ -10,20 +10,25 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: https://charts.jetstack.io
-    chart: cert-manager
-    targetRevision: 1.19.4
-    helm:
-      releaseName: cert-manager
-      valuesObject:
-        crds:
-          enabled: true
-          keep: false
-        prometheus:
-          enabled: true
-          servicemonitor:
+  sources:
+    - chart: cert-manager
+      repoURL: https://charts.jetstack.io
+      targetRevision: 1.19.4
+      helm:
+        releaseName: cert-manager
+        valuesObject:
+          crds:
             enabled: true
+            keep: false
+          prometheus:
+            enabled: true
+            servicemonitor:
+              enabled: true
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/cert-manager
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
