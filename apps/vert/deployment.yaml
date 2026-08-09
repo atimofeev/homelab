@@ -18,9 +18,27 @@ spec:
       labels:
         app: vert
     spec:
+      securityContext:
+        fsGroup: 101
       containers:
         - name: vert
           image: ghcr.io/vert-sh/vert:sha-9154213
+          securityContext:
+            runAsUser: 101
+            runAsGroup: 101
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           ports:
             - containerPort: 80
               name: http
+          volumeMounts:
+            - name: run
+              mountPath: /run
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+      volumes:
+        - name: run
+          emptyDir: {}
+        - name: nginx-cache
+          emptyDir: {}

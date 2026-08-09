@@ -21,6 +21,12 @@ spec:
       containers:
         - name: blocky-ui
           image: ghcr.io/gabeduartem/blocky-ui:1.6.1
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 65533
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           ports:
             - containerPort: 3000
               name: http

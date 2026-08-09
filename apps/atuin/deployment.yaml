@@ -33,6 +33,10 @@ spec:
                   key: fqdn-uri
           image: ghcr.io/atuinsh/atuin:18.16.0
           name: atuin
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           ports:
             - containerPort: 8888
           resources:

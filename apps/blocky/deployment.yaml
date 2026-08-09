@@ -21,6 +21,10 @@ spec:
       containers:
         - name: blocky
           image: ghcr.io/0xerr0r/blocky:v0.29.0
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           ports:
             - containerPort: 53
               name: dns-tcp

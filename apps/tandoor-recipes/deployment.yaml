@@ -53,7 +53,13 @@ spec:
               python manage.py migrate
               python manage.py collectstatic --noinput
               echo "Done"
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           volumeMounts:
+            - mountPath: /tmp
+              name: tmp
             - mountPath: /opt/recipes/mediafiles
               name: media
               subPath: files
@@ -64,6 +70,10 @@ spec:
         - name: recipes
           image: vabene1111/recipes:2.6.4
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           command:
             - /opt/recipes/venv/bin/gunicorn
             - -b
@@ -102,6 +112,8 @@ spec:
             - mountPath: /opt/recipes/staticfiles
               name: static
               subPath: files
+            - mountPath: /tmp
+              name: tmp
           env:
             - name: DEBUG
               value: "1"
@@ -128,3 +140,5 @@ spec:
         - name: static
           persistentVolumeClaim:
             claimName: recipes-static
+        - name: tmp
+          emptyDir: {}

@@ -29,6 +29,10 @@ spec:
         - name: niks3
           image: ghcr.io/mic92/niks3:v1.4.0
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           ports:
             - containerPort: 5751
               name: http

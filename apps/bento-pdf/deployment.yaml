@@ -18,9 +18,31 @@ spec:
       labels:
         app: bento-pdf
     spec:
+      securityContext:
+        fsGroup: 101
       containers:
         - name: bento-pdf
           image: ghcr.io/alam00000/bentopdf-simple:sha-90998ed
+          securityContext:
+            runAsUser: 101
+            runAsGroup: 101
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           ports:
             - containerPort: 8080
               name: http
+          volumeMounts:
+            - name: nginx-tmp
+              mountPath: /etc/nginx/tmp
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: nginx-tmp
+          emptyDir: {}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
