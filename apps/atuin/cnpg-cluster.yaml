@@ -10,8 +10,10 @@ spec:
   instances: 3
   maxSyncReplicas: 1
   storage:
+    storageClass: single-replica
     size: 5Gi
   walStorage:
+    storageClass: single-replica
     size: 3Gi
   postgresql:
     parameters:
