@@ -23,6 +23,7 @@ spec:
           concurrentAutomaticEngineUpgradePerNodeLimit: "1"
           concurrentReplicaRebuildPerNodeLimit: "2"
           snapshotHeavyTaskConcurrentLimit: "2"
+          storageReservedPercentageForDefaultDisk: "10"
         ingress:
           enabled: true
           host: longhorn.prosto.dev
