@@ -21,6 +21,8 @@ spec:
           jobEnabled: false
         defaultSettings:
           concurrentAutomaticEngineUpgradePerNodeLimit: "1"
+          concurrentReplicaRebuildPerNodeLimit: "2"
+          snapshotHeavyTaskConcurrentLimit: "2"
         ingress:
           enabled: true
           host: longhorn.prosto.dev
