@@ -12,7 +12,7 @@ spec:
   storage:
     size: 5Gi
   walStorage:
-    size: 2Gi
+    size: 3Gi
   postgresql:
     parameters:
       wal_keep_size: "128MB"
@@ -21,4 +21,3 @@ spec:
     initdb:
       database: atuin
       owner: atuin
-
