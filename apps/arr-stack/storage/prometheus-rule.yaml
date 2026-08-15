@@ -14,9 +14,9 @@ spec:
       rules:
         - alert: MediaVolumeUsageWarning
           expr: |
-            kubelet_volume_stats_used_bytes{namespace="arr-stack", persistentvolumeclaim="media"}
+            kubelet_volume_stats_used_bytes{namespace="arr-stack", persistentvolumeclaim="arr-media"}
             /
-            clamp_min(kubelet_volume_stats_capacity_bytes{namespace="arr-stack", persistentvolumeclaim="media"}, 1) > 0.80
+            clamp_min(kubelet_volume_stats_capacity_bytes{namespace="arr-stack", persistentvolumeclaim="arr-media"}, 1) > 0.80
           for: 15m
           labels:
             severity: warning
@@ -24,9 +24,9 @@ spec:
             summary: "Media volume {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} above 80% usage"
         - alert: MediaVolumeUsageCritical
           expr: |
-            kubelet_volume_stats_used_bytes{namespace="arr-stack", persistentvolumeclaim="media"}
+            kubelet_volume_stats_used_bytes{namespace="arr-stack", persistentvolumeclaim="arr-media"}
             /
-            clamp_min(kubelet_volume_stats_capacity_bytes{namespace="arr-stack", persistentvolumeclaim="media"}, 1) > 0.90
+            clamp_min(kubelet_volume_stats_capacity_bytes{namespace="arr-stack", persistentvolumeclaim="arr-media"}, 1) > 0.90
           for: 5m
           labels:
             severity: critical

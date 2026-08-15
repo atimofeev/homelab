@@ -113,7 +113,7 @@ apps/arr-stack/
 
 ### Storage
 
-- **Media volume:** existing `single-replica` StorageClass + one **250Gi ReadWriteMany** PVC `media` in `arr-stack`. RWX lets pods schedule on any node — Longhorn 1.12 serves RWX via share-manager (NFSv4).
+- **Media volume:** existing `single-replica` StorageClass + one **250Gi ReadWriteMany** PVC `arr-media` in `arr-stack`. RWX lets pods schedule on any node — Longhorn 1.12 serves RWX via share-manager (NFSv4).
 - **Capacity reality:** each node's Longhorn disk is ~463Gi maximum / ~418Gi available, 3 nodes. The 250Gi media volume fits; do **not** plan for multi-TB. Grow later via `allowVolumeExpansion: true`.
 - **Config PVCs** (Radarr/Sonarr/Prowlarr/Bazarr/Jellyfin configs, SQLite DBs): small RWO on default `longhorn` StorageClass (3 replicas) — pattern in `apps/tandoor-recipes/pvc.yaml`.
 - **PVC protection:** every PVC manifest carries `argocd.argoproj.io/sync-options: Delete=false,Prune=false` — data must survive syncs and Application deletion. Do not use ApplicationSet-only preservation fields on these plain Applications.
@@ -122,7 +122,7 @@ apps/arr-stack/
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: media
+  name: arr-media
   namespace: arr-stack
   annotations:
     argocd.argoproj.io/sync-options: Delete=false,Prune=false
@@ -188,7 +188,7 @@ Capacity policy:
 ## Dependency graph
 
 ```text
-storage (single-replica SC + 250Gi RWX PVC media @ /data)
+storage (single-replica SC + 250Gi RWX PVC arr-media @ /data)
 ├── qbittorrent                     → /data/torrents
 ├── prowlarr                        (indexer manager)
 ├── radarr    → /data/media/movies  (needs prowlarr indexers, qbittorrent client)
@@ -258,14 +258,14 @@ Checklist:
 - [ ] Stack Application exactly as in [Deployment model](#deployment-model); child Application per the same pattern.
 - [ ] Shared `single-replica` StorageClass from `apps/longhorn-storage/` is Synced/Healthy.
 - [ ] PVC: `accessModes: [ReadWriteMany]`, `storageClassName: single-replica`, `requests.storage: 250Gi`, annotation `argocd.argoproj.io/sync-options: Delete=false,Prune=false`.
-- [ ] Add Prometheus alerts using `kubelet_volume_stats_used_bytes / clamp_min(kubelet_volume_stats_capacity_bytes, 1)` filtered by `namespace="arr-stack", persistentvolumeclaim="media"`: warning `> 0.80` for 15m, critical `> 0.90` for 5m.
+- [ ] Add Prometheus alerts using `kubelet_volume_stats_used_bytes / clamp_min(kubelet_volume_stats_capacity_bytes, 1)` filtered by `namespace="arr-stack", persistentvolumeclaim="arr-media"`: warning `> 0.80` for 15m, critical `> 0.90` for 5m.
 - [ ] Commit and push; ArgoCD auto-syncs (root app → stack app → child app).
 
 Acceptance:
 
 - [ ] `kubectl --kubeconfig ~/.kube/homelab.yaml get application arr-stack -n argocd` → Synced/Healthy
 - [ ] `kubectl --kubeconfig ~/.kube/homelab.yaml get application arr-storage -n argocd` → Synced/Healthy
-- [ ] `kubectl --kubeconfig ~/.kube/homelab.yaml get pvc media -n arr-stack` → Bound
+- [ ] `kubectl --kubeconfig ~/.kube/homelab.yaml get pvc arr-media -n arr-stack` → Bound
 - [ ] Prometheus query returns one media PVC series; warning and critical rules show Healthy/Inactive before thresholds.
 - [ ] RWX smoke test: two throwaway pods pinned to different nodes, write from one and read from the other under `/data` — proves Longhorn share-manager/NFS works on these Talos nodes before the stack builds on it.
 
@@ -278,7 +278,7 @@ Files to create: `apps/arr-stack/qbittorrent/main-arr.yaml`, `deployment.yaml`, 
 Checklist:
 
 - [ ] Single qBittorrent container using normal cluster egress.
-- [ ] Save/temp paths `/data/torrents/complete` and `/data/torrents/incomplete`; PVC `media` mounted at `/data`.
+- [ ] Save/temp paths `/data/torrents/complete` and `/data/torrents/incomplete`; PVC `arr-media` mounted at `/data`.
 - [ ] qBittorrent uses `PUID=1000`, `PGID=1000`; pod uses `fsGroup: 1000`.
 - [ ] Service ClusterIP, no HTTPRoute yet.
 - [ ] First boot: set WebUI password → Bitwarden.
@@ -313,7 +313,7 @@ Files to create: `apps/arr-stack/radarr/main-arr.yaml` + `deployment.yaml`, `ser
 
 Checklist:
 
-- [ ] Root folders: Radarr `/data/media/movies`, Sonarr `/data/media/tv`; PVC `media` mounted at `/data`.
+- [ ] Root folders: Radarr `/data/media/movies`, Sonarr `/data/media/tv`; PVC `arr-media` mounted at `/data`.
 - [ ] Download client: qBittorrent (WebUI API; harvest password/token after boot → Bitwarden).
 - [ ] Prowlarr Applications: add Radarr and Sonarr using their internal Service URLs and generated API keys; Prowlarr then syncs indexers into both apps.
 - [ ] Enable Completed Download Handling and Remove in both apps. Removal waits for successful import, completed seed goal, and stopped torrent.
@@ -408,7 +408,7 @@ Rollback: revert workload changes while retaining `main-arr.yaml`; existing libr
 - [ ] **GPU transcoding** — Intel i915 / NVIDIA plugin, node selection, transcode volume strategy; no GPU infra exists today.
 - [ ] **Subgen / Whisper** — AI subtitle generation.
 - [ ] **Maintainerr** — add only when manual cleanup is insufficient. Define explicit dry-run rules first (watched age, unrequested age, minimum free-space floor), review candidates, then enable deletion through Radarr/Sonarr integrations.
-- [ ] **Longhorn backup target** — `apps/longhorn-backup-target/backup-target.yaml` currently has `backupTargetURL: ""` placeholder. Configure Cloudflare R2 or local storage (avoid AWS-only dependencies). Enables volume backups for `media` + config PVCs.
+- [ ] **Longhorn backup target** — `apps/longhorn-backup-target/backup-target.yaml` currently has `backupTargetURL: ""` placeholder. Configure Cloudflare R2 or local storage (avoid AWS-only dependencies). Enables volume backups for `arr-media` + config PVCs.
 
 ## Secrets inventory
 
