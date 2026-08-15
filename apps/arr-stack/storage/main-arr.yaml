@@ -3,7 +3,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 
 metadata:
-  name: storage
+  name: arr-storage
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "0"

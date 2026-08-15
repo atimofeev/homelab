@@ -11,7 +11,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: longhorn-media
+  storageClassName: single-replica
   resources:
     requests:
       storage: 250Gi
