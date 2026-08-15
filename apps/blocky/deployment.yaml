@@ -20,7 +20,6 @@ spec:
     spec:
       topologySpreadConstraints:
         - maxSkew: 1
-          minDomains: 3
           topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
