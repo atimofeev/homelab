@@ -1,0 +1,49 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+
+metadata:
+  name: cnpg
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: cnpg
+
+spec:
+  groups:
+    - name: cnpg.rules
+      rules:
+        - alert: CNPGClusterInstancesDegraded
+          expr: |
+            count by (cluster) (cnpg_collector_up == 1) < 3
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CNPG cluster {{ $labels.cluster }} has fewer than 3 healthy instances"
+            description: |
+              Fewer than 3 PostgreSQL instances are healthy in cluster {{ $labels.cluster }},
+              including vanished scrape targets. Threshold assumes 3-instance clusters;
+              adjust if clusters with a different instance count are added.
+        - alert: CNPGClusterNoPrimary
+          expr: |
+            min by (cluster) (cnpg_pg_replication_in_recovery) == 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CNPG cluster {{ $labels.cluster }} has no primary instance"
+        - alert: CNPGReplicaFailingReplication
+          expr: |
+            cnpg_pg_replication_in_recovery > cnpg_pg_replication_is_wal_receiver_up
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CNPG replica {{ $labels.pod }} is not receiving WAL"
+        - alert: CNPGReplicationLag
+          expr: |
+            cnpg_pg_replication_lag > 300
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CNPG instance {{ $labels.pod }} replication lag exceeds 300 seconds"

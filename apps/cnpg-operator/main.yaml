@@ -18,10 +18,9 @@ spec:
       releaseName: cnpg-operator
       valuesObject:
         monitoring:
-          enabled: true
           podMonitorEnabled: true
           grafanaDashboard:
-            enabled: true
+            create: true
   destination:
     server: https://kubernetes.default.svc
     namespace: cnpg-operator
