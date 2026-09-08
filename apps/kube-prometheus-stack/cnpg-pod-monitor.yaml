@@ -17,5 +17,6 @@ spec:
   podMetricsEndpoints:
     - port: metrics
       relabelings:
-        - sourceLabels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
+        - action: replace
+          sourceLabels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
           targetLabel: cluster
