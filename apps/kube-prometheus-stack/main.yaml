@@ -48,7 +48,7 @@ spec:
               - target_matchers:
                   - 'alertname = InfoInhibitor'
             route:
-              group_by: ['namespace', 'alertname']
+              group_by: ['...']
               group_wait: 30s
               group_interval: 5m
               repeat_interval: 12h
@@ -70,6 +70,39 @@ spec:
                     parse_mode: HTML
             templates:
               - '/etc/alertmanager/config/*.tmpl'
+          templateFiles:
+            telegram.tmpl: |
+              {{ define "telegram.default.message" -}}
+              {{- $alert := index .Alerts 0 -}}
+              {{- if eq $alert.Status "firing" -}}🔴{{- else -}}🟢{{- end }} <b>{{ $alert.Labels.alertname }}</b>
+              {{ with $alert.Labels.severity -}}
+              <b>Severity:</b> {{ . }}
+              {{ end -}}
+              {{ with $alert.Annotations.summary -}}
+              <b>Summary:</b> {{ . }}
+              {{ end -}}
+              {{ with $alert.Annotations.description -}}
+              <b>Description:</b> {{ . }}
+              {{ end -}}
+              {{ with $alert.Labels.instance -}}
+              <b>Target:</b> {{ . }}
+              {{ end -}}
+              {{ with $alert.Labels.job -}}
+              <b>Job:</b> {{ . }}
+              {{ end -}}
+              {{ with $alert.StartsAt -}}
+              <b>Started:</b> {{ . }}
+              {{ end -}}
+              {{ if eq $alert.Status "resolved" -}}
+              <b>Ended:</b> {{ $alert.EndsAt }}
+              {{ end -}}
+              {{ with $alert.GeneratorURL -}}
+              <a href="{{ . }}">Prometheus</a>
+              {{ end -}}
+              {{ with $alert.Annotations.runbook_url -}}
+              <a href="{{ . }}">Runbook</a>
+              {{ end -}}
+              {{ end }}
           ingress:
             enabled: true
             ingressClassName: nginx
