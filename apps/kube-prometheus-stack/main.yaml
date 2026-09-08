@@ -10,58 +10,135 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    chart: kube-prometheus-stack
-    targetRevision: 82.4.3
-    helm:
-      releaseName: kube-prometheus-stack
-      valuesObject:
-        alertmanager:
-          ingress:
-            enabled: true
-            ingressClassName: nginx
-            hosts: [alertmanager.prosto.dev]
-            annotations:
-              item.homer.rajsingh.info/name: "Alertmanager"
-              item.homer.rajsingh.info/subtitle: "Monitoring Alerts Management"
-              item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/alertmanager.webp"
-              service.homer.rajsingh.info/name: "Observability"
-              service.homer.rajsingh.info/icon: "fas fa-eye"
-        grafana:
-          admin:
-            existingSecret: grafana-admin
-            userKey: admin-user
-            passwordKey: admin-password
-          persistence:
-            enabled: true
-            size: 1Gi
-          ingress:
-            enabled: true
-            ingressClassName: nginx
-            hosts: [grafana.prosto.dev]
-            annotations:
-              item.homer.rajsingh.info/name: "Grafana"
-              item.homer.rajsingh.info/subtitle: "Monitoring Dashboards"
-              item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/grafana.webp"
-              service.homer.rajsingh.info/name: "Observability"
-              service.homer.rajsingh.info/icon: "fas fa-eye"
-        prometheus:
-          ingress:
-            enabled: true
-            ingressClassName: nginx
-            hosts: [prometheus.prosto.dev]
-            annotations:
-              item.homer.rajsingh.info/name: "Prometheus"
-              item.homer.rajsingh.info/subtitle: "Metrics TSDB"
-              item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/prometheus.webp"
-              service.homer.rajsingh.info/name: "Observability"
-              service.homer.rajsingh.info/icon: "fas fa-eye"
-          prometheusSpec:
-            podMonitorSelectorNilUsesHelmValues: false
-            ruleSelectorNilUsesHelmValues: false
-            serviceMonitorSelectorNilUsesHelmValues: false
-            probeSelectorNilUsesHelmValues: false
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 82.4.3
+      helm:
+        releaseName: kube-prometheus-stack
+        valuesObject:
+          alertmanager:
+            alertmanagerSpec:
+              secrets:
+                - alertmanager-telegram
+            config:
+              global:
+                resolve_timeout: 5m
+              inhibit_rules:
+                - source_matchers:
+                    - 'severity = critical'
+                  target_matchers:
+                    - 'severity =~ warning|info'
+                  equal:
+                    - 'namespace'
+                    - 'alertname'
+                - source_matchers:
+                    - 'severity = warning'
+                  target_matchers:
+                    - 'severity = info'
+                  equal:
+                    - 'namespace'
+                    - 'alertname'
+                - source_matchers:
+                    - 'alertname = InfoInhibitor'
+                  target_matchers:
+                    - 'severity = info'
+                  equal:
+                    - 'namespace'
+                - target_matchers:
+                    - 'alertname = InfoInhibitor'
+              route:
+                group_by: ['namespace', 'alertname']
+                group_wait: 30s
+                group_interval: 5m
+                repeat_interval: 12h
+                receiver: 'null'
+                routes:
+                  - receiver: 'null'
+                    matchers:
+                      - alertname = "Watchdog"
+                  - receiver: 'telegram'
+                    matchers:
+                      - 'severity =~ warning|critical'
+              receivers:
+                - name: 'null'
+                - name: 'telegram'
+                  telegram_configs:
+                    - send_resolved: true
+                      bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram/bot-token
+                      chat_id_file: /etc/alertmanager/secrets/alertmanager-telegram/chat-id
+                      parse_mode: HTML
+              templates:
+                - '/etc/alertmanager/config/*.tmpl'
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              hosts: [alertmanager.prosto.dev]
+              annotations:
+                item.homer.rajsingh.info/name: "Alertmanager"
+                item.homer.rajsingh.info/subtitle: "Monitoring Alerts Management"
+                item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/alertmanager.webp"
+                service.homer.rajsingh.info/name: "Observability"
+                service.homer.rajsingh.info/icon: "fas fa-eye"
+          grafana:
+            admin:
+              existingSecret: grafana-admin
+              userKey: admin-user
+              passwordKey: admin-password
+            persistence:
+              enabled: true
+              size: 1Gi
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              hosts: [grafana.prosto.dev]
+              annotations:
+                item.homer.rajsingh.info/name: "Grafana"
+                item.homer.rajsingh.info/subtitle: "Monitoring Dashboards"
+                item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/grafana.webp"
+                service.homer.rajsingh.info/name: "Observability"
+                service.homer.rajsingh.info/icon: "fas fa-eye"
+            dashboardProviders:
+              dashboardproviders.yaml:
+                apiVersion: 1
+                providers:
+                  - name: default
+                    orgId: 1
+                    folder: ''
+                    type: file
+                    disableDeletion: false
+                    editable: true
+                    options:
+                      path: /var/lib/grafana/dashboards/default
+            dashboards:
+              default:
+                longhorn:
+                  gnetId: 17626
+                  revision: 1
+                  datasource:
+                    - name: DS_PROMETHEUS-LONGHORN
+                      value: Prometheus
+          prometheus:
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              hosts: [prometheus.prosto.dev]
+              annotations:
+                item.homer.rajsingh.info/name: "Prometheus"
+                item.homer.rajsingh.info/subtitle: "Metrics TSDB"
+                item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/prometheus.webp"
+                service.homer.rajsingh.info/name: "Observability"
+                service.homer.rajsingh.info/icon: "fas fa-eye"
+            prometheusSpec:
+              podMonitorSelectorNilUsesHelmValues: false
+              ruleSelectorNilUsesHelmValues: false
+              serviceMonitorSelectorNilUsesHelmValues: false
+              probeSelectorNilUsesHelmValues: false
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/kube-prometheus-stack
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
