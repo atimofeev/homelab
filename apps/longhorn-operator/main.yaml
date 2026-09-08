@@ -17,6 +17,9 @@ spec:
     helm:
       releaseName: longhorn
       valuesObject:
+        metrics:
+          serviceMonitor:
+            enabled: true
         preUpgradeChecker:
           jobEnabled: false
         defaultSettings:

@@ -1,0 +1,80 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+
+metadata:
+  name: longhorn
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: longhorn
+
+spec:
+  groups:
+    - name: longhorn.rules
+      rules:
+        - alert: LonghornVolumeActualSpaceUsedWarning
+          expr: |
+            (longhorn_volume_actual_size_bytes / longhorn_volume_capacity_bytes) * 100 > 90
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Longhorn volume {{ $labels.volume }} actual space used over 90% of capacity"
+        - alert: LonghornVolumeStatusCritical
+          expr: |
+            longhorn_volume_robustness{state="faulted"} == 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Longhorn volume {{ $labels.volume }} is Faulted"
+        - alert: LonghornVolumeStatusWarning
+          expr: |
+            longhorn_volume_robustness{state="degraded"} == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Longhorn volume {{ $labels.volume }} is Degraded"
+        - alert: LonghornNodeStorageWarning
+          expr: |
+            (longhorn_node_storage_usage_bytes / longhorn_node_storage_capacity_bytes) * 100 > 70
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Longhorn node {{ $labels.node }} storage used over 70% of capacity"
+        - alert: LonghornDiskStorageWarning
+          expr: |
+            (longhorn_disk_usage_bytes / longhorn_disk_capacity_bytes) * 100 > 70
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Longhorn disk {{ $labels.disk }} on {{ $labels.node }} used over 70% of capacity"
+        - alert: LonghornNodeDown
+          expr: |
+            (avg(longhorn_node_count_total) or on() vector(0))
+            -
+            (count(longhorn_node_status{condition="ready"} == 1) or on() vector(0))
+            > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $value }} Longhorn node(s) offline"
+        - alert: LonghornInstanceManagerCPUUsageWarning
+          expr: |
+            (longhorn_instance_manager_cpu_usage_millicpu / longhorn_instance_manager_cpu_requests_millicpu) * 100 > 300
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Longhorn instance manager {{ $labels.instance_manager }} on {{ $labels.node }} CPU over 300% of request"
+        - alert: LonghornNodeCPUUsageWarning
+          expr: |
+            (longhorn_node_cpu_usage_millicpu / longhorn_node_cpu_capacity_millicpu) * 100 > 90
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Longhorn node {{ $labels.node }} CPU over 90% of capacity"
