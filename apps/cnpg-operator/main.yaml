@@ -10,17 +10,22 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: https://cloudnative-pg.io/charts/
-    chart: cloudnative-pg
-    targetRevision: 0.28.0
-    helm:
-      releaseName: cnpg-operator
-      valuesObject:
-        monitoring:
-          podMonitorEnabled: true
-          grafanaDashboard:
-            create: true
+  sources:
+    - repoURL: https://cloudnative-pg.io/charts/
+      chart: cloudnative-pg
+      targetRevision: 0.28.0
+      helm:
+        releaseName: cnpg-operator
+        valuesObject:
+          monitoring:
+            podMonitorEnabled: true
+            grafanaDashboard:
+              create: true
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/cnpg-operator
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: cnpg-operator

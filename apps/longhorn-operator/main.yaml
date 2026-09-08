@@ -10,34 +10,39 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: https://charts.longhorn.io
-    chart: longhorn
-    targetRevision: 1.12.0
-    helm:
-      releaseName: longhorn
-      valuesObject:
-        metrics:
-          serviceMonitor:
+  sources:
+    - repoURL: https://charts.longhorn.io
+      chart: longhorn
+      targetRevision: 1.12.0
+      helm:
+        releaseName: longhorn
+        valuesObject:
+          metrics:
+            serviceMonitor:
+              enabled: true
+          preUpgradeChecker:
+            jobEnabled: false
+          defaultSettings:
+            concurrentAutomaticEngineUpgradePerNodeLimit: "1"
+            concurrentReplicaRebuildPerNodeLimit: "2"
+            snapshotHeavyTaskConcurrentLimit: "2"
+            storageReservedPercentageForDefaultDisk: "10"
+          ingress:
             enabled: true
-        preUpgradeChecker:
-          jobEnabled: false
-        defaultSettings:
-          concurrentAutomaticEngineUpgradePerNodeLimit: "1"
-          concurrentReplicaRebuildPerNodeLimit: "2"
-          snapshotHeavyTaskConcurrentLimit: "2"
-          storageReservedPercentageForDefaultDisk: "10"
-        ingress:
-          enabled: true
-          host: longhorn.prosto.dev
-          ingressClassName: nginx
-          secureBackends: true
-          annotations:
-            item.homer.rajsingh.info/name: "Longhorn"
-            item.homer.rajsingh.info/subtitle: "Distributed Storage"
-            item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/longhorn.webp"
-            service.homer.rajsingh.info/name: "System"
-            service.homer.rajsingh.info/icon: "fas fa-cogs"
+            host: longhorn.prosto.dev
+            ingressClassName: nginx
+            secureBackends: true
+            annotations:
+              item.homer.rajsingh.info/name: "Longhorn"
+              item.homer.rajsingh.info/subtitle: "Distributed Storage"
+              item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/longhorn.webp"
+              service.homer.rajsingh.info/name: "System"
+              service.homer.rajsingh.info/icon: "fas fa-cogs"
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/longhorn-operator
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system

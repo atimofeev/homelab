@@ -3,7 +3,7 @@ kind: PrometheusRule
 
 metadata:
   name: cnpg
-  namespace: monitoring
+  namespace: cnpg-operator
   labels:
     app.kubernetes.io/part-of: cnpg
 

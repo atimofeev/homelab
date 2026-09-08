@@ -3,7 +3,7 @@ kind: PrometheusRule
 
 metadata:
   name: longhorn
-  namespace: monitoring
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/part-of: longhorn
 
