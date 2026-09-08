@@ -66,7 +66,7 @@ spec:
                 telegram_configs:
                   - send_resolved: true
                     bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram/bot-token
-                    chat_id_file: /etc/alertmanager/secrets/alertmanager-telegram/chat-id
+                    chat_id: 8906920453
                     parse_mode: HTML
             templates:
               - '/etc/alertmanager/config/*.tmpl'
