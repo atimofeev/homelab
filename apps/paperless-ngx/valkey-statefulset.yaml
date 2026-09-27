@@ -84,7 +84,9 @@ spec:
             - name: data
               mountPath: /data
   volumeClaimTemplates:
-    - metadata:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
         name: data
         annotations:
           argocd.argoproj.io/sync-options: Delete=false
