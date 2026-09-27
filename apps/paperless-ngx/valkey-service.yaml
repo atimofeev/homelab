@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: paperless-ngx-valkey
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/instance: paperless-ngx
+    app.kubernetes.io/component: valkey
+
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/instance: paperless-ngx
+    app.kubernetes.io/component: valkey
+  ports:
+    - name: valkey
+      port: 6379
+      targetPort: valkey
+      protocol: TCP

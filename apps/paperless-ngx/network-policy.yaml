@@ -1,0 +1,48 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+  name: paperless-mcp
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  labels:
+    app.kubernetes.io/name: paperless-mcp
+    app.kubernetes.io/component: mcp
+
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-mcp
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Keep HTTP MCP private. Add a narrower agent namespace selector when agent is deployed.
+    - from:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 3000
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: paperless-ngx
+              app.kubernetes.io/component: server
+      ports:
+        - protocol: TCP
+          port: 8000

@@ -1,0 +1,317 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+
+metadata:
+  name: paperless-api-token-bootstrap
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: api-token-bootstrap
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+
+metadata:
+  name: paperless-api-token-bootstrap
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: api-token-bootstrap
+
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    resourceNames:
+      - paperless-api-secret
+    verbs:
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+
+metadata:
+  name: paperless-api-token-bootstrap
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: api-token-bootstrap
+
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: paperless-api-token-bootstrap
+subjects:
+  - kind: ServiceAccount
+    name: paperless-api-token-bootstrap
+    namespace: paperless-ngx
+---
+apiVersion: batch/v1
+kind: Job
+
+metadata:
+  name: paperless-api-token-bootstrap
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "3"
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: api-token-bootstrap
+
+spec:
+  backoffLimit: 6
+  activeDeadlineSeconds: 1800
+  parallelism: 1
+  completions: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: paperless-ngx
+        app.kubernetes.io/instance: paperless-ngx
+        app.kubernetes.io/component: api-token-bootstrap
+    spec:
+      serviceAccountName: paperless-api-token-bootstrap
+      automountServiceAccountToken: true
+      restartPolicy: OnFailure
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: bootstrap
+          image: ghcr.io/paperless-ngx/paperless-ngx:3.2.1@sha256:5fa76604a81df6945086e0837b14b56543d137e8ce4f311cc5d9ebe907e74e79
+          imagePullPolicy: IfNotPresent
+          command:
+            - python3
+            - -c
+            - |
+              import base64
+              import json
+              import os
+              import ssl
+              import time
+              import urllib.error
+              import urllib.request
+              from pathlib import Path
+
+              namespace = os.environ["PAPERLESS_NAMESPACE"]
+              api_secret_name = os.environ["PAPERLESS_API_SECRET_NAME"]
+              paperless_url = os.environ["PAPERLESS_INTERNAL_URL"].rstrip("/")
+              admin_user = os.environ["PAPERLESS_ADMIN_USER"]
+              admin_password = os.environ["PAPERLESS_ADMIN_PASSWORD"]
+
+              service_account = Path(
+                  "/var/run/secrets/kubernetes.io/serviceaccount",
+              )
+              kube_token = (service_account / "token").read_text().strip()
+              kube_context = ssl.create_default_context(
+                  cafile=str(service_account / "ca.crt"),
+              )
+              kube_api = (
+                  "https://kubernetes.default.svc/api/v1/namespaces/"
+                  + namespace
+              )
+
+              def request(
+                  url,
+                  method="GET",
+                  body=None,
+                  headers=None,
+                  context=None,
+              ):
+                  request_headers = headers or {}
+                  request_headers.setdefault("Accept", "application/json")
+                  request_object = urllib.request.Request(
+                      url,
+                      data=body,
+                      headers=request_headers,
+                      method=method,
+                  )
+                  try:
+                      with urllib.request.urlopen(
+                          request_object,
+                          context=context,
+                          timeout=15,
+                      ) as response:
+                          return response.status, response.read()
+                  except urllib.error.HTTPError as error:
+                      return error.code, error.read()
+                  except (OSError, TimeoutError):
+                      return 0, b""
+
+              def kube_request(url, method="GET", body=None):
+                  return request(
+                      url,
+                      method,
+                      body,
+                      {
+                          "Authorization": "Bearer " + kube_token,
+                          "Content-Type": "application/json",
+                      },
+                      kube_context,
+                  )
+
+              def existing_api_secret():
+                  status, body = kube_request(
+                      kube_api + "/secrets/" + api_secret_name,
+                  )
+                  if status == 404:
+                      return None
+                  if status != 200:
+                      raise RuntimeError(
+                          "failed to inspect API Secret: HTTP " + str(status),
+                      )
+                  secret = json.loads(body)
+                  encoded = secret.get("data", {}).get("api-key")
+                  if encoded:
+                      return base64.b64decode(encoded).decode()
+                  return ""
+
+              def save_api_secret(api_key):
+                  secret = {
+                      "apiVersion": "v1",
+                      "kind": "Secret",
+                      "metadata": {
+                          "name": api_secret_name,
+                          "namespace": namespace,
+                          "labels": {
+                              "app.kubernetes.io/name": "paperless-ngx",
+                              "app.kubernetes.io/component": "credentials",
+                          },
+                      },
+                      "type": "Opaque",
+                      "stringData": {"api-key": api_key},
+                  }
+                  body = json.dumps(secret).encode()
+                  status, response = kube_request(
+                      kube_api + "/secrets",
+                      "POST",
+                      body,
+                  )
+                  if status in (200, 201):
+                      return
+                  if status != 409:
+                      raise RuntimeError(
+                          "failed to create API Secret: HTTP " + str(status),
+                      )
+
+                  status, current_body = kube_request(
+                      kube_api + "/secrets/" + api_secret_name,
+                  )
+                  if status != 200:
+                      raise RuntimeError(
+                          "failed to read conflicting API Secret: HTTP "
+                          + str(status),
+                      )
+                  current = json.loads(current_body)
+                  if current.get("data", {}).get("api-key"):
+                      return
+                  secret["metadata"]["resourceVersion"] = current["metadata"][
+                      "resourceVersion"
+                  ]
+                  status, response = kube_request(
+                      kube_api + "/secrets/" + api_secret_name,
+                      "PUT",
+                      json.dumps(secret).encode(),
+                  )
+                  if status not in (200, 201):
+                      raise RuntimeError(
+                          "failed to update API Secret: HTTP " + str(status),
+                      )
+
+              existing = existing_api_secret()
+              if existing:
+                  print("Paperless API Secret already exists")
+                  raise SystemExit(0)
+
+              login_body = json.dumps(
+                  {
+                      "username": admin_user,
+                      "password": admin_password,
+                  },
+              ).encode()
+              auth_token = None
+              api_key = None
+              for attempt in range(90):
+                  status, response = request(
+                      paperless_url + "/api/token/",
+                      "POST",
+                      login_body,
+                      {"Content-Type": "application/json"},
+                  )
+                  if status == 200:
+                      auth_token = json.loads(response)["token"]
+                      status, response = request(
+                          paperless_url + "/api/profile/generate_auth_token/",
+                          "POST",
+                          b"{}",
+                          {
+                              "Authorization": "Token " + auth_token,
+                              "Content-Type": "application/json",
+                          },
+                      )
+                      if status == 200:
+                          api_key = json.loads(response)
+                          if isinstance(api_key, str) and api_key:
+                              break
+                  time.sleep(10)
+
+              if not api_key:
+                  raise RuntimeError(
+                      "Paperless API token was not created after 15 minutes",
+                  )
+
+              save_api_secret(api_key)
+              print("Paperless API Secret created")
+          env:
+            - name: PAPERLESS_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: PAPERLESS_API_SECRET_NAME
+              value: paperless-api-secret
+            - name: PAPERLESS_INTERNAL_URL
+              value: http://paperless-ngx:8000
+            - name: PAPERLESS_ADMIN_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: paperless-ngx
+                  key: PAPERLESS_ADMIN_USER
+            - name: PAPERLESS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-admin-secret
+                  key: password
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL

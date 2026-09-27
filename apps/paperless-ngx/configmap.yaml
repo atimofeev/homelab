@@ -1,0 +1,43 @@
+---
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: paperless-ngx
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: server
+
+data:
+  PAPERLESS_URL: https://paperless.prosto.dev
+  PAPERLESS_TIME_ZONE: UTC
+  PAPERLESS_ADMIN_USER: admin
+  PAPERLESS_ADMIN_MAIL: admin@prosto.dev
+  PAPERLESS_OCR_LANGUAGE: eng
+  PAPERLESS_OCR_MODE: auto
+  PAPERLESS_OCR_OUTPUT_TYPE: pdfa
+  PAPERLESS_OCR_CLEAN: clean
+  PAPERLESS_OCR_DESKEW: "true"
+  PAPERLESS_OCR_ROTATE_PAGES: "true"
+  PAPERLESS_ARCHIVE_FILE_GENERATION: auto
+  PAPERLESS_SCRATCH_DIR: /tmp/paperless
+  PAPERLESS_CONSUMER_POLLING_INTERVAL: "0"
+  PAPERLESS_CONSUMER_STABILITY_DELAY: "5"
+  PAPERLESS_CONSUMER_RECURSIVE: "false"
+  PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "false"
+  PAPERLESS_CONSUMER_DELETE_DUPLICATES: "false"
+  PAPERLESS_TASK_WORKERS: "1"
+  PAPERLESS_WORKER_TIMEOUT: "1800"
+  PAPERLESS_WEBSERVER_WORKERS: "1"
+  PAPERLESS_ENABLE_UPDATE_CHECK: "false"
+  PAPERLESS_AUDIT_LOG_ENABLED: "true"
+  PAPERLESS_DBENGINE: postgresql
+  PAPERLESS_DBHOST: cnpg-paperless-rw
+  PAPERLESS_DBPORT: "5432"
+  PAPERLESS_DBNAME: paperless
+  PAPERLESS_DBUSER: paperless
+  PAPERLESS_DB_OPTIONS: sslmode=require
+  PAPERLESS_REDIS: redis://paperless-ngx-valkey:6379/0

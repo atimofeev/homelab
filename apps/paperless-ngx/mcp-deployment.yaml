@@ -1,0 +1,87 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: paperless-mcp
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app.kubernetes.io/name: paperless-mcp
+    app.kubernetes.io/component: mcp
+
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: paperless-mcp
+        app.kubernetes.io/component: mcp
+    spec:
+      serviceAccountName: paperless-mcp
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mcp
+          image: ghcr.io/cubinet-code/paperless-ngx-mcp:3.2.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - --http
+            - --port
+            - "3000"
+          env:
+            - name: PAPERLESS_URL
+              value: http://paperless-ngx:8000
+            - name: PAPERLESS_PUBLIC_URL
+              value: https://paperless.prosto.dev
+            - name: PAPERLESS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-api-secret
+                  key: api-key
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: tmp
+          emptyDir: {}

@@ -1,0 +1,27 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+
+metadata:
+  name: cnpg-paperless
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: database
+
+spec:
+  instances: 3
+  maxSyncReplicas: 1
+
+  bootstrap:
+    initdb:
+      database: paperless
+      owner: paperless
+
+  storage:
+    size: 10Gi
+
+  walStorage:
+    size: 3Gi

@@ -1,0 +1,40 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+
+metadata:
+  name: paperless-ngx
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: monitoring
+    release: kube-prometheus-stack
+
+spec:
+  groups:
+    - name: paperless-ngx
+      rules:
+        - alert: PaperlessDeploymentUnavailable
+          expr: >-
+            kube_deployment_status_replicas_available{namespace="paperless-ngx", deployment="paperless-ngx"} < 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Paperless deployment unavailable
+            description: Paperless has no available application replicas.
+        - alert: PaperlessPersistentVolumeClaimFillingUp
+          expr: >-
+            kubelet_volume_stats_available_bytes{namespace="paperless-ngx", persistentvolumeclaim=~"paperless-ngx-(media|data|consume|export)"}
+            /
+            kubelet_volume_stats_capacity_bytes{namespace="paperless-ngx", persistentvolumeclaim=~"paperless-ngx-(media|data|consume|export)"}
+            < 0.15
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Paperless persistent volume is nearly full
+            description: >-
+              Paperless PVC {{ $labels.persistentvolumeclaim }} has less than 15 percent free space.
