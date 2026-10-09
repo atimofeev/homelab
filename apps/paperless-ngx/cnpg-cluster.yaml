@@ -21,7 +21,7 @@ spec:
       owner: paperless
 
   storage:
-    size: 10Gi
+    size: 2Gi
 
   walStorage:
     size: 3Gi

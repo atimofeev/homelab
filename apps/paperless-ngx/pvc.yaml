@@ -6,7 +6,7 @@ metadata:
   namespace: paperless-ngx
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    argocd.argoproj.io/sync-options: Delete=false
+    argocd.argoproj.io/sync-options: Delete=false,Prune=false
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: storage
@@ -24,7 +24,7 @@ metadata:
   namespace: paperless-ngx
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    argocd.argoproj.io/sync-options: Delete=false
+    argocd.argoproj.io/sync-options: Delete=false,Prune=false
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: storage
@@ -42,7 +42,7 @@ metadata:
   namespace: paperless-ngx
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    argocd.argoproj.io/sync-options: Delete=false
+    argocd.argoproj.io/sync-options: Delete=false,Prune=false
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: storage
@@ -60,7 +60,7 @@ metadata:
   namespace: paperless-ngx
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    argocd.argoproj.io/sync-options: Delete=false
+    argocd.argoproj.io/sync-options: Delete=false,Prune=false
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: storage
@@ -70,3 +70,83 @@ spec:
   resources:
     requests:
       storage: 50Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-ngx-media-v2
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: Delete=false,Prune=false
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: storage
+spec:
+  storageClassName: longhorn
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-ngx-data-v2
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: Delete=false,Prune=false
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: storage
+spec:
+  storageClassName: longhorn
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-ngx-consume-v2
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: Delete=false,Prune=false
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: storage
+spec:
+  storageClassName: longhorn
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-ngx-export-v2
+  namespace: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: Delete=false,Prune=false
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/component: storage
+spec:
+  storageClassName: longhorn
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
