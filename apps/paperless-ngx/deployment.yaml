@@ -117,16 +117,16 @@ spec:
       volumes:
         - name: media
           persistentVolumeClaim:
-            claimName: paperless-ngx-media-v2
+            claimName: paperless-ngx-media
         - name: data
           persistentVolumeClaim:
-            claimName: paperless-ngx-data-v2
+            claimName: paperless-ngx-data
         - name: consume
           persistentVolumeClaim:
-            claimName: paperless-ngx-consume-v2
+            claimName: paperless-ngx-consume
         - name: export
           persistentVolumeClaim:
-            claimName: paperless-ngx-export-v2
+            claimName: paperless-ngx-export
         - name: tmp
           emptyDir:
             sizeLimit: 2Gi
