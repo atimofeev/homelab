@@ -15,6 +15,3 @@ externalSecrets:
     - name: alertmanager-telegram
       namespace: monitoring
       bitwardenKey: "e4e6225d-47c7-47ca-af32-b4bf005c4479"
-    - name: niks3-secrets
-      namespace: niks3
-      bitwardenKey: "de811cd3-e08b-45ae-974b-b42d016f74d6"
