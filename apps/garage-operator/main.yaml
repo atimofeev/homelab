@@ -13,7 +13,7 @@ spec:
   sources:
     - repoURL: oci://ghcr.io/rajsinghtech/charts/garage-operator
       chart: garage-operator
-      targetRevision: 0.2.8
+      targetRevision: 0.8.2
       helm:
         releaseName: garage-operator
         valuesObject:
