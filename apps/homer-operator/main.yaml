@@ -19,11 +19,6 @@ spec:
       valuesObject:
         operator:
           enableGatewayAPI: true
-          metrics:
-            rbacProxy:
-              image:
-                repository: bitnami/kube-rbac-proxy
-                tag: latest
         prometheusRule:
           enabled: true
         grafanaDashboard:
