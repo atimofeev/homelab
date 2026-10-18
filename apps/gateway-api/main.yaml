@@ -1,0 +1,22 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: gateway-api
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-16"
+
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kubernetes-sigs/gateway-api.git
+    targetRevision: v1.5.1
+    path: config/crd/standard
+  destination:
+    server: https://kubernetes.default.svc
+  # Keep sync manual until CRD ownership handoff is complete.
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
