@@ -34,7 +34,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: mcp
-          image: ghcr.io/cubinet-code/paperless-ngx-mcp:3.2.0
+          image: ghcr.io/cubinet-code/paperless-ngx-mcp:3.2.1
           imagePullPolicy: IfNotPresent
           args:
             - --http
