@@ -1,0 +1,58 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "automerge": false,
+  "prConcurrentLimit": 5,
+  "argocd": {
+    "managerFilePatterns": ["/^apps\/.*\/main\\.yaml$/"]
+  },
+  "kubernetes": {
+    "managerFilePatterns": ["/^apps\/.*\\.ya?ml$/"]
+  },
+  "helm-values": {
+    "managerFilePatterns": ["/^apps\/.*\/main\\.yaml$/"]
+  },
+  "packageRules": [
+    {
+      "description": "Use the same provider and module registry as OpenTofu",
+      "matchDatasources": ["terraform-provider", "terraform-module"],
+      "registryUrls": ["https://registry.opentofu.org"]
+    },
+    {
+      "description": "Track OpenTofu rather than Terraform CLI requirements",
+      "matchManagers": ["terraform"],
+      "matchDepTypes": ["required_version"],
+      "overrideDepName": "opentofu/opentofu",
+      "overridePackageName": "opentofu/opentofu"
+    },
+    {
+      "description": "OCI chart URLs already include chart names; remove duplicated suffixes",
+      "matchManagers": ["argocd"],
+      "matchDatasources": ["docker"],
+      "matchJsonata": ["$split(packageName, '/')[-1] = $split(packageName, '/')[-2]"],
+      "overridePackageName": "{{{replace '/[^/]+$' '' packageName}}}"
+    },
+    {
+      "matchFileNames": ["apps/**"],
+      "groupName": "{{{replace '^apps/([^/]+).*$' '$1' packageFileDir}}} dependencies",
+      "groupSlug": "{{{replace '^apps/([^/]+).*$' '$1' packageFileDir}}}-dependencies",
+      "separateMajorMinor": true
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^infra\/terraform\\.tfvars$/"],
+      "matchStrings": ["(?:^|\\r?\\n)[ \\t]*talos_version[ \\t]*=[ \\t]*\"(?<currentValue>[^\"\\r\\n]+)\""],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "siderolabs/talos"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^infra\/terraform\\.tfvars$/"],
+      "matchStrings": ["(?:^|\\r?\\n)[ \\t]*kubernetes_version[ \\t]*=[ \\t]*\"(?<currentValue>[^\"\\r\\n]+)\""],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubernetes/kubernetes"
+    }
+  ]
+}
