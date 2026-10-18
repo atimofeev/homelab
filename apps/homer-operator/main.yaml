@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: oci://ghcr.io/rajsinghtech/homer-operator/charts/homer-operator
     chart: homer-operator
-    targetRevision: 1.1.0
+    targetRevision: 1.2.4
     helm:
       releaseName: homer-operator
       valuesObject:
