@@ -26,6 +26,18 @@
       "overridePackageName": "opentofu/opentofu"
     },
     {
+      "description": "Use Helm version semantics for OCI charts rather than Docker tag suffixes",
+      "matchManagers": ["argocd"],
+      "matchDatasources": ["docker"],
+      "versioning": "helm"
+    },
+    {
+      "description": "Offer Talos and Kubernetes updates separately for each minor release",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["siderolabs/talos", "kubernetes/kubernetes"],
+      "separateMultipleMinor": true
+    },
+    {
       "description": "OCI chart URLs already include chart names; remove duplicated suffixes",
       "matchManagers": ["argocd"],
       "matchDatasources": ["docker"],
