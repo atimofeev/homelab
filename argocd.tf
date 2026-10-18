@@ -15,7 +15,7 @@ resource "helm_release" "argo_cd" {
   name       = "argo-cd"
   namespace  = local.argocd-namespace
   repository = "https://argoproj.github.io/argo-helm"
-  version    = "9.4.6"
+  version    = "9.7.1"
 
   values = [
     yamlencode({
