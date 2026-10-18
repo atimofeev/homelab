@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: oci://ghcr.io/traefik/helm/traefik
     chart: traefik
-    targetRevision: 40.0.0-ea.1
+    targetRevision: 40.3.0
     helm:
       releaseName: traefik
       valuesObject:
