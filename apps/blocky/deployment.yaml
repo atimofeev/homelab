@@ -27,7 +27,7 @@ spec:
               app: blocky
       containers:
         - name: blocky
-          image: ghcr.io/0xerr0r/blocky:v0.29.0
+          image: ghcr.io/0xerr0r/blocky:v0.35.0
           securityContext:
             runAsNonRoot: true
             allowPrivilegeEscalation: false
