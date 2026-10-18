@@ -40,10 +40,10 @@ Install the hosted Renovate GitHub App for this repository to enable dependency 
 
 Renovate uses the recommended preset, limits concurrent PRs to five, and disables automerge. Extraction covers ArgoCD chart references and Helm values in `apps/**/main.yaml`, Kubernetes images in `apps/**/*.yaml` and `apps/**/*.yml`, and the default Helm values, Terraform/OpenTofu, and Helm chart file patterns. Two scoped regex managers track `talos_version` and `kubernetes_version` in `infra/terraform.tfvars` against their upstream GitHub releases.
 
-Provider and module lookups use the OpenTofu registry, and `required_version` constraints track OpenTofu releases rather than Terraform releases. For OCI chart URLs that already include the chart name, a lookup rule removes the duplicate suffix added by the ArgoCD manager.
+Provider and module lookups use the OpenTofu registry, and `required_version` constraints track OpenTofu releases rather than Terraform releases. OCI charts use Helm version semantics so prerelease chart versions can advance to stable releases. For OCI chart URLs that already include the chart name, a lookup rule removes the duplicate suffix added by the ArgoCD manager.
 
 Dependencies under `apps/` are grouped dynamically by application directory, with major updates split from minor/patch updates. Review and merge PRs manually: merging application changes can trigger automatic ArgoCD deployment.
 
-Infrastructure updates remain separate from application groups and require manual review and apply. Follow supported Talos and Kubernetes upgrade procedures, compatibility requirements, and upgrade order rather than treating version PRs as automatic cluster upgrades.
+Infrastructure updates remain separate from application groups and require manual review and apply. Talos and Kubernetes updates get separate PRs for each minor release, exposing intermediate upgrade targets. This does not enforce upgrade order or block later-minor PRs: follow supported Talos and Kubernetes upgrade procedures, compatibility requirements, and sequential upgrade order rather than treating version PRs as automatic cluster upgrades.
 
 `sha-*` image tags are not automatically ordered, and this configuration does not make `latest` tags reproducible.
