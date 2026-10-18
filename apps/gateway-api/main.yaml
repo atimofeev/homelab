@@ -16,7 +16,9 @@ spec:
     path: config/crd/standard
   destination:
     server: https://kubernetes.default.svc
-  # Keep sync manual until CRD ownership handoff is complete.
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - ServerSideApply=true
