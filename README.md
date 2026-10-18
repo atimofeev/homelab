@@ -36,7 +36,7 @@ This repository manages a Kubernetes-based homelab environment using a declarati
 
 ## Dependency Updates
 
-Install the hosted Renovate GitHub App for this repository to enable dependency PRs. `renovate.json` supplies the configuration; no self-hosted workflow is needed. App installation is a separate setup step.
+Install the hosted Renovate GitHub App for this repository to enable dependency PRs. `.github/renovate.json` supplies the configuration; no self-hosted workflow is needed. App installation is a separate setup step.
 
 Renovate uses the recommended preset, limits concurrent PRs to five, and disables automerge. Extraction covers ArgoCD chart references and Helm values in `apps/**/main.yaml`, Kubernetes images in `apps/**/*.yaml` and `apps/**/*.yml`, and the default Helm values, Terraform/OpenTofu, and Helm chart file patterns. Two scoped regex managers track `talos_version` and `kubernetes_version` in `infra/terraform.tfvars` against their upstream GitHub releases.
 
