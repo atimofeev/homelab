@@ -7,6 +7,11 @@ metadata:
   namespace: paperless-ngx
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+    item.homer.rajsingh.info/name: "Paperless-ngx"
+    item.homer.rajsingh.info/subtitle: "Document Management"
+    item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/paperless-ngx.webp"
+    service.homer.rajsingh.info/name: "Tools"
+    service.homer.rajsingh.info/icon: "fas fa-screwdriver-wrench"
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/component: server
