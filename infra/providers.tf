@@ -5,22 +5,22 @@ terraform {
 
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = ">=5.18.0"
+      version = "5.24.0"
     }
 
     routeros = {
       source  = "terraform-routeros/routeros"
-      version = ">=1.99.0"
+      version = "1.99.1"
     }
 
     talos = {
       source  = "siderolabs/talos"
-      version = ">=0.10.1"
+      version = "0.11.0"
     }
 
     local = {
       source  = "hashicorp/local"
-      version = ">= 2.5.0"
+      version = "2.9.0"
     }
 
   }
