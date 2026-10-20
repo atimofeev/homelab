@@ -31,6 +31,21 @@ variable "nodes" {
   description = "A list of baremetal nodes with their IP and MAC addresses."
 }
 
+variable "talos_api_vip" {
+  description = "Floating IPv4 address for the Kubernetes API; must be unused and excluded from DHCP."
+  type        = string
+
+  validation {
+    condition     = can(cidrnetmask("${var.talos_api_vip}/32"))
+    error_message = "talos_api_vip must be a valid IPv4 address."
+  }
+
+  validation {
+    condition     = !contains([for node in var.nodes : node.ip], var.talos_api_vip)
+    error_message = "talos_api_vip must differ from every node IP address."
+  }
+}
+
 variable "talos_cluster_name" {
   type        = string
   description = "The name of the Talos cluster."
