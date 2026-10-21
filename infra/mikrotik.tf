@@ -34,6 +34,15 @@ resource "routeros_ip_cloud" "this" {
   ddns_update_interval = "15m"
 }
 
+resource "routeros_ip_pool" "default_dhcp" {
+  name   = "default-dhcp"
+  ranges = ["192.168.88.100-192.168.88.251"]
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "routeros_ip_dhcp_server_lease" "this" {
   for_each = { for node in var.nodes : node.mac => node }
 
