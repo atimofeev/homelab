@@ -146,6 +146,13 @@ data "talos_machine_configuration" "this" {
   )
 }
 
+# Generate drain credentials without depending on the cluster's post-upgrade health check.
+ephemeral "talos_cluster_kubeconfig" "upgrade" {
+  machine_secrets = talos_machine_secrets.this.machine_secrets
+  cluster_name    = var.talos_cluster_name
+  endpoint        = local.cluster_endpoint
+}
+
 resource "talos_machine" "this" {
   for_each = { for node in var.nodes : node.mac => node }
 
@@ -153,8 +160,9 @@ resource "talos_machine" "this" {
   machine_configuration           = data.talos_machine_configuration.this[each.key].machine_configuration
   node                            = each.value.ip
   ignore_kubernetes_upgrade_drift = true
+  image                           = data.talos_image_factory_urls.this.urls.installer
+  kubeconfig_wo                   = ephemeral.talos_cluster_kubeconfig.upgrade.kubeconfig_raw
 
-  # OS upgrades require a separate, explicitly sequenced rollout; leave image unset.
   on_destroy = {
     reset = false
   }
