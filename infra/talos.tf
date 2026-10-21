@@ -115,7 +115,7 @@ data "talos_machine_configuration" "this" {
               name     = "external-secrets-namespace"
               contents = <<-EOT
               apiVersion: v1
-              kind: namespace
+              kind: Namespace
               metadata:
                 name: external-secrets
             EOT
