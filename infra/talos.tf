@@ -1,6 +1,9 @@
 locals {
-  node_ips         = [for node in var.nodes : node.ip]
-  cluster_endpoint = "https://${local.node_ips[0]}:6443"
+  node_ips          = [for node in var.nodes : node.ip]
+  control_plane_ips = [for node in var.nodes : node.ip if node.type == "controlplane"]
+  worker_ips        = [for node in var.nodes : node.ip if node.type == "worker"]
+  cluster_endpoint  = "https://${var.talos_api_vip}:6443"
+  kubeconfig        = yamldecode(talos_cluster_kubeconfig.this.kubeconfig_raw)
 }
 
 data "talos_image_factory_extensions_versions" "this" {
@@ -49,24 +52,19 @@ resource "talos_machine_secrets" "this" {}
 
 resource "talos_cluster_kubeconfig" "this" {
   client_configuration = talos_machine_secrets.this.client_configuration
-  node                 = local.node_ips[0]
+  node                 = local.control_plane_ips[0]
+
+  depends_on = [data.talos_cluster_health.this]
 }
 
 resource "local_sensitive_file" "kubeconfig" {
-  content         = talos_cluster_kubeconfig.this.kubeconfig_raw
+  content = yamlencode(merge(local.kubeconfig, {
+    clusters = [for entry in local.kubeconfig.clusters : merge(entry, {
+      cluster = merge(entry.cluster, { server = local.cluster_endpoint })
+    })]
+  }))
   filename        = pathexpand(var.kubeconfig_path)
   file_permission = "0600"
-}
-
-data "talos_machine_configuration" "this" {
-  for_each = { for node in var.nodes : node.mac => node }
-
-  cluster_endpoint   = local.cluster_endpoint
-  cluster_name       = var.talos_cluster_name
-  kubernetes_version = var.kubernetes_version
-  machine_secrets    = talos_machine_secrets.this.machine_secrets
-  machine_type       = each.value.type
-  talos_version      = var.talos_version
 }
 
 data "talos_client_configuration" "this" {
@@ -82,14 +80,33 @@ resource "local_sensitive_file" "talosconfig" {
   file_permission = "0600"
 }
 
-resource "talos_machine_configuration_apply" "this" {
+data "talos_machine_configuration" "this" {
   for_each = { for node in var.nodes : node.mac => node }
 
-  client_configuration        = talos_machine_secrets.this.client_configuration
-  machine_configuration_input = data.talos_machine_configuration.this[each.key].machine_configuration
-  node                        = each.value.ip
+  cluster_endpoint   = local.cluster_endpoint
+  cluster_name       = var.talos_cluster_name
+  kubernetes_version = var.kubernetes_version
+  machine_secrets    = talos_machine_secrets.this.machine_secrets
+  machine_type       = each.value.type
+  talos_version      = var.talos_version
   config_patches = concat(
     [for patch in var.talos_config_patches : yamlencode(patch)],
+    each.value.type == "controlplane" ? [yamlencode({
+      machine = {
+        network = {
+          interfaces = [{
+            deviceSelector = { hardwareAddr = lower(each.value.mac) }
+            dhcp           = true
+            vip            = { ip = var.talos_api_vip }
+          }]
+        }
+      }
+      cluster = {
+        apiServer = {
+          certSANs = distinct(concat([var.talos_api_vip], local.node_ips))
+        }
+      }
+    })] : [],
     [
       yamlencode({
         cluster = {
@@ -129,13 +146,48 @@ resource "talos_machine_configuration_apply" "this" {
   )
 }
 
-resource "talos_machine_bootstrap" "this" {
-  node                 = local.node_ips[0]
-  client_configuration = talos_machine_secrets.this.client_configuration
+resource "talos_machine" "this" {
+  for_each = { for node in var.nodes : node.mac => node }
 
-  depends_on = [talos_machine_configuration_apply.this]
+  client_configuration            = talos_machine_secrets.this.client_configuration
+  machine_configuration           = data.talos_machine_configuration.this[each.key].machine_configuration
+  node                            = each.value.ip
+  ignore_kubernetes_upgrade_drift = true
+
+  # OS upgrades require a separate, explicitly sequenced rollout; leave image unset.
+  on_destroy = {
+    reset = false
+  }
+
+  depends_on = [routeros_ip_pool.default_dhcp]
 
   lifecycle {
-    ignore_changes = all
+    prevent_destroy = true
+  }
+}
+
+resource "talos_cluster" "this" {
+  node                 = local.control_plane_ips[0]
+  control_plane_nodes  = local.control_plane_ips
+  client_configuration = talos_machine_secrets.this.client_configuration
+  kubernetes_version   = var.kubernetes_version
+
+  depends_on = [talos_machine.this]
+
+  timeouts = {
+    update = "60m"
+  }
+}
+
+data "talos_cluster_health" "this" {
+  client_configuration = talos_machine_secrets.this.client_configuration
+  control_plane_nodes  = local.control_plane_ips
+  worker_nodes         = local.worker_ips
+  endpoints            = local.control_plane_ips
+
+  depends_on = [talos_cluster.this]
+
+  timeouts = {
+    read = "10m"
   }
 }
