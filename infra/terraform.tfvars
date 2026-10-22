@@ -19,16 +19,16 @@ talos_config_patches = [
     }
   }),
   ({
-    cluster = {
-      allowSchedulingOnControlPlanes = true
+    apiVersion = "v1alpha1"
+    kind       = "KubeNodeConfig"
+    labels = {
+      "node.kubernetes.io/exclude-from-external-load-balancers" = {
+        "$patch" = "delete"
+      }
     }
-  }),
-  ({
-    machine = {
-      nodeLabels = {
-        "node.kubernetes.io/exclude-from-external-load-balancers" = {
-          "$patch" = "delete"
-        }
+    taints = {
+      "node-role.kubernetes.io/control-plane" = {
+        "$patch" = "delete"
       }
     }
   })

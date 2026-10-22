@@ -101,11 +101,10 @@ data "talos_machine_configuration" "this" {
           }]
         }
       }
-      cluster = {
-        apiServer = {
-          certSANs = distinct(concat([var.talos_api_vip], local.node_ips))
-        }
-      }
+      }), yamlencode({
+      apiVersion    = "v1alpha1"
+      kind          = "KubeAPIServerConfig"
+      certExtraSANs = distinct(concat([var.talos_api_vip], local.node_ips))
     })] : [],
     [
       yamlencode({
@@ -135,11 +134,18 @@ data "talos_machine_configuration" "this" {
             }
           ]
         }
-        machine = {
-          install = {
-            disk  = each.value.disk
-            image = data.talos_image_factory_urls.this.urls.installer
+      }),
+      yamlencode({
+        apiVersion = "v1alpha1"
+        kind       = "UnattendedInstallConfig"
+        installer = {
+          image = data.talos_image_factory_urls.this.urls.installer
+        }
+        provisioning = {
+          diskSelector = {
+            match = format("disk.dev_path == %s", jsonencode(each.value.disk))
           }
+          wipe = false
         }
       })
     ]
