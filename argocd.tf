@@ -2,14 +2,14 @@ locals {
   argocd-namespace = "argocd"
 }
 
-resource "kubernetes_namespace" "argo_cd" {
+resource "kubernetes_namespace_v1" "argo_cd" {
   metadata {
     name = local.argocd-namespace
   }
 }
 
 resource "helm_release" "argo_cd" {
-  depends_on = [kubernetes_namespace.argo_cd]
+  depends_on = [kubernetes_namespace_v1.argo_cd]
 
   chart      = "argo-cd"
   name       = "argo-cd"
@@ -45,7 +45,7 @@ resource "helm_release" "argo_cd" {
 }
 
 resource "helm_release" "argocd_apps" {
-  depends_on = [kubernetes_namespace.argo_cd, helm_release.argo_cd]
+  depends_on = [kubernetes_namespace_v1.argo_cd, helm_release.argo_cd]
 
   chart      = "argocd-apps"
   name       = "argocd-apps"
