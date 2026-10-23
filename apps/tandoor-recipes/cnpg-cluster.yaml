@@ -8,6 +8,10 @@ metadata:
 
 spec:
   instances: 3
+  affinity:
+    enablePodAntiAffinity: true
+    podAntiAffinityType: required
+    topologyKey: kubernetes.io/hostname
   maxSyncReplicas: 1
   storage:
     size: 2Gi
