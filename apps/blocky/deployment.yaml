@@ -10,6 +10,11 @@ metadata:
 
 spec:
   replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: blocky
@@ -18,13 +23,13 @@ spec:
       labels:
         app: blocky
     spec:
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: ScheduleAnyway
-          labelSelector:
-            matchLabels:
-              app: blocky
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: blocky
+              topologyKey: kubernetes.io/hostname
       containers:
         - name: blocky
           image: ghcr.io/0xerr0r/blocky:v0.35.0
