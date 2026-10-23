@@ -15,3 +15,27 @@ externalSecrets:
     - name: alertmanager-telegram
       namespace: monitoring
       bitwardenKey: "e4e6225d-47c7-47ca-af32-b4bf005c4479"
+    - name: dex-credentials
+      namespace: argocd
+      bitwardenKey: "3c031c83-6f12-4b8c-b603-b4ec0174cee8"
+    - name: argocd-dex
+      namespace: argocd
+      bitwardenKey: "3c031c83-6f12-4b8c-b603-b4ec0174cee8"
+      target:
+        template:
+          engineVersion: v2
+          mergePolicy: Replace
+          metadata:
+            labels:
+              app.kubernetes.io/part-of: argocd
+          data:
+            client-secret: '{{ .ARGOCD_CLIENT_SECRET }}'
+    - name: grafana-dex
+      namespace: monitoring
+      bitwardenKey: "3c031c83-6f12-4b8c-b603-b4ec0174cee8"
+      target:
+        template:
+          engineVersion: v2
+          mergePolicy: Replace
+          data:
+            GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: '{{ .GRAFANA_CLIENT_SECRET }}'

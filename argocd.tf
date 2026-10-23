@@ -25,6 +25,28 @@ resource "helm_release" "argo_cd" {
       global = {
         domain = "argocd.prosto.dev"
       }
+      dex = {
+        enabled = false
+      }
+      configs = {
+        cm = {
+          url                       = "https://argocd.prosto.dev"
+          "admin.enabled"           = "true"
+          "users.anonymous.enabled" = "false"
+          "oidc.config" = yamlencode({
+            name            = "Google"
+            issuer          = "https://dex.prosto.dev"
+            clientID        = "argocd"
+            clientSecret    = "$argocd-dex:client-secret"
+            requestedScopes = ["openid", "profile", "email", "offline_access"]
+          })
+        }
+        rbac = {
+          "policy.default" = ""
+          "policy.csv"     = "g, legalaze94@gmail.com, role:admin"
+          scopes           = "[email]"
+        }
+      }
       server = {
         ingress = {
           enabled          = true
