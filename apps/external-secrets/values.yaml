@@ -16,7 +16,7 @@ externalSecrets:
       namespace: monitoring
       bitwardenKey: "e4e6225d-47c7-47ca-af32-b4bf005c4479"
     - name: dex-credentials
-      namespace: argocd
+      namespace: dex
       bitwardenKey: "3c031c83-6f12-4b8c-b603-b4ec0174cee8"
     - name: argocd-dex
       namespace: argocd

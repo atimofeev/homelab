@@ -92,7 +92,7 @@ spec:
             memory: 256Mi
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: dex
   syncPolicy:
     automated:
       prune: true
