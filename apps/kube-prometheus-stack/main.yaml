@@ -115,7 +115,10 @@ spec:
               service.homer.rajsingh.info/icon: "fas fa-eye"
         grafana:
           deploymentStrategy:
-            type: Recreate
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 0
+              maxUnavailable: 1
           annotations:
             secret.reloader.stakater.com/reload: grafana-dex
             configmap.reloader.stakater.com/reload: kube-prometheus-stack-grafana-datasource
