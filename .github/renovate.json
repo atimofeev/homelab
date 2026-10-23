@@ -48,7 +48,15 @@
       "matchFileNames": ["apps/**"],
       "groupName": "{{{replace '^apps/([^/]+).*$' '$1' packageFileDir}}} dependencies",
       "groupSlug": "{{{replace '^apps/([^/]+).*$' '$1' packageFileDir}}}-dependencies",
-      "separateMajorMinor": true
+      "separateMajorMinor": true,
+      "separateMinorPatch": true
+    },
+    {
+      "description": "Automerge patch updates for application manifests only",
+      "matchFileNames": ["apps/**"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr"
     }
   ],
   "customManagers": [
