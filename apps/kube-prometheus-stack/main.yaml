@@ -127,9 +127,11 @@ spec:
             dashboards:
               skipReload: true
               initDashboards: true
+              watchMethod: LIST
             datasources:
               skipReload: true
               initDatasources: true
+              watchMethod: LIST
           grafana.ini:
             server:
               root_url: https://grafana.prosto.dev
