@@ -31,7 +31,7 @@ resource "helm_release" "argo_cd" {
       configs = {
         cm = {
           url                       = "https://argocd.prosto.dev"
-          "admin.enabled"           = "true"
+          "admin.enabled"           = "false"
           "users.anonymous.enabled" = "false"
           "oidc.config" = yamlencode({
             name            = "Google"
