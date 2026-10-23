@@ -114,6 +114,8 @@ spec:
               service.homer.rajsingh.info/name: "Observability"
               service.homer.rajsingh.info/icon: "fas fa-eye"
         grafana:
+          deploymentStrategy:
+            type: Recreate
           annotations:
             secret.reloader.stakater.com/reload: grafana-dex
             configmap.reloader.stakater.com/reload: kube-prometheus-stack-grafana-datasource
