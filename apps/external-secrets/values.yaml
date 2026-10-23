@@ -9,9 +9,6 @@ externalSecrets:
     - name: mikrotik-dns-rw
       namespace: external-dns
       bitwardenKey: "5a36f7a5-4e90-4bcd-b7b0-b411015a4f8f"
-    - name: grafana-admin
-      namespace: monitoring
-      bitwardenKey: "fab4989d-41bf-4eec-8bab-b411015ad92e"
     - name: alertmanager-telegram
       namespace: monitoring
       bitwardenKey: "e4e6225d-47c7-47ca-af32-b4bf005c4479"

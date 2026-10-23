@@ -116,14 +116,26 @@ spec:
         grafana:
           annotations:
             secret.reloader.stakater.com/reload: grafana-dex
+            configmap.reloader.stakater.com/reload: kube-prometheus-stack-grafana-datasource
           envFromSecrets:
             - name: grafana-dex
+          env:
+            GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
+          sidecar:
+            dashboards:
+              skipReload: true
+              initDashboards: true
+            datasources:
+              skipReload: true
+              initDatasources: true
           grafana.ini:
             server:
               root_url: https://grafana.prosto.dev
             auth:
-              disable_login_form: false
+              disable_login_form: true
               oauth_auto_login: false
+            auth.basic:
+              enabled: false
             auth.anonymous:
               enabled: false
             auth.generic_oauth:
@@ -143,10 +155,6 @@ spec:
               role_attribute_strict: true
               allow_assign_grafana_admin: true
               skip_org_role_sync: false
-          admin:
-            existingSecret: grafana-admin
-            userKey: admin-user
-            passwordKey: admin-password
           persistence:
             enabled: true
             size: 1Gi
