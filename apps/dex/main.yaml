@@ -22,6 +22,12 @@ spec:
         envFrom:
           - secretRef:
               name: dex-credentials
+        volumes:
+          - name: tmp
+            emptyDir: {}
+        volumeMounts:
+          - name: tmp
+            mountPath: /tmp
         config:
           issuer: https://dex.prosto.dev
           storage:
