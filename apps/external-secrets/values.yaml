@@ -15,9 +15,16 @@ externalSecrets:
     - name: dex-credentials
       namespace: dex
       bitwardenKey: "3c031c83-6f12-4b8c-b603-b4ec0174cee8"
-    - name: argocd-dex
+      target:
+        template:
+          engineVersion: v2
+          mergePolicy: Replace
+          data:
+            GOOGLE_CLIENT_ID: '{{ .GOOGLE_CLIENT_ID }}'
+            GOOGLE_CLIENT_SECRET: '{{ .GOOGLE_CLIENT_SECRET }}'
+  dexClients:
+    - name: argocd
       namespace: argocd
-      bitwardenKey: "3c031c83-6f12-4b8c-b603-b4ec0174cee8"
       target:
         template:
           engineVersion: v2
@@ -26,13 +33,34 @@ externalSecrets:
             labels:
               app.kubernetes.io/part-of: argocd
           data:
-            client-secret: '{{ .ARGOCD_CLIENT_SECRET }}'
-    - name: grafana-dex
+            client-secret: '{{ .clientSecret }}'
+    - name: grafana
       namespace: monitoring
-      bitwardenKey: "3c031c83-6f12-4b8c-b603-b4ec0174cee8"
       target:
         template:
           engineVersion: v2
           mergePolicy: Replace
           data:
-            GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: '{{ .GRAFANA_CLIENT_SECRET }}'
+            GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: '{{ .clientSecret }}'
+    - name: paperless
+      namespace: paperless-ngx
+      target:
+        template:
+          engineVersion: v2
+          mergePolicy: Replace
+          data:
+            PAPERLESS_SOCIALACCOUNT_PROVIDERS: |
+              {
+                "openid_connect": {
+                  "APPS": [{
+                    "provider_id": "dex",
+                    "name": "Google",
+                    "client_id": "paperless",
+                    "secret": {{ .clientSecret | toJson }},
+                    "settings": {
+                      "server_url": "https://dex.prosto.dev/.well-known/openid-configuration",
+                      "token_auth_method": "client_secret_basic"
+                    }
+                  }]
+                }
+              }
