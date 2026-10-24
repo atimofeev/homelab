@@ -18,7 +18,7 @@ spec:
       releaseName: dex
       valuesObject:
         deploymentAnnotations:
-          secret.reloader.stakater.com/reload: dex-credentials,dex-client-argocd,dex-client-grafana,dex-client-paperless
+          secret.reloader.stakater.com/reload: dex-credentials,dex-client-argocd,dex-client-grafana,dex-client-paperless,dex-client-oauth2-proxy
         envFrom:
           - secretRef:
               name: dex-credentials
@@ -37,6 +37,11 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: dex-client-paperless
+                key: password
+          - name: OAUTH2_PROXY_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: dex-client-oauth2-proxy
                 key: password
         volumes:
           - name: tmp
@@ -78,6 +83,11 @@ spec:
               secretEnv: PAPERLESS_CLIENT_SECRET
               redirectURIs:
                 - https://paperless.prosto.dev/accounts/oidc/dex/login/callback/
+            - id: oauth2-proxy
+              name: Prometheus
+              secretEnv: OAUTH2_PROXY_CLIENT_SECRET
+              redirectURIs:
+                - https://prometheus.prosto.dev/oauth2/callback
         httpRoute:
           enabled: true
           annotations:
