@@ -209,8 +209,11 @@ spec:
                 item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/prometheus.webp"
                 service.homer.rajsingh.info/name: "Observability"
                 service.homer.rajsingh.info/icon: "fas fa-eye"
+              # Keep API-defaulted reference fields explicit to prevent Argo CD drift.
               parentRefs:
-                - name: traefik-gateway
+                - group: gateway.networking.k8s.io
+                  kind: Gateway
+                  name: traefik-gateway
                   namespace: traefik
                   sectionName: websecure
               hostnames: [prometheus.prosto.dev]
@@ -227,8 +230,11 @@ spec:
                         type: PathPrefix
                         value: /oauth2/
                   backendRefs:
-                    - name: oauth2-proxy
+                    - group: ""
+                      kind: Service
+                      name: oauth2-proxy
                       port: 80
+                      weight: 1
           prometheusSpec:
             externalUrl: https://prometheus.prosto.dev
             podMonitorSelectorNilUsesHelmValues: false
