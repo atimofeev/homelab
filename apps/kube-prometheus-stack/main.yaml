@@ -197,16 +197,40 @@ spec:
                     value: Prometheus
         prometheus:
           ingress:
-            enabled: true
-            ingressClassName: nginx
-            hosts: [prometheus.prosto.dev]
-            annotations:
-              item.homer.rajsingh.info/name: "Prometheus"
-              item.homer.rajsingh.info/subtitle: "Metrics TSDB"
-              item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/prometheus.webp"
-              service.homer.rajsingh.info/name: "Observability"
-              service.homer.rajsingh.info/icon: "fas fa-eye"
+            enabled: false
+          service:
+            type: ClusterIP
+          route:
+            main:
+              enabled: true
+              annotations:
+                item.homer.rajsingh.info/name: "Prometheus"
+                item.homer.rajsingh.info/subtitle: "Metrics TSDB"
+                item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/prometheus.webp"
+                service.homer.rajsingh.info/name: "Observability"
+                service.homer.rajsingh.info/icon: "fas fa-eye"
+              parentRefs:
+                - name: traefik-gateway
+                  namespace: traefik
+                  sectionName: websecure
+              hostnames: [prometheus.prosto.dev]
+              filters:
+                - type: ExtensionRef
+                  extensionRef:
+                    group: traefik.io
+                    kind: Middleware
+                    name: prometheus-auth
+              additionalRules:
+                # OAuth callbacks must reach oauth2-proxy without ForwardAuth.
+                - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /oauth2/
+                  backendRefs:
+                    - name: oauth2-proxy
+                      port: 80
           prometheusSpec:
+            externalUrl: https://prometheus.prosto.dev
             podMonitorSelectorNilUsesHelmValues: false
             ruleSelectorNilUsesHelmValues: false
             serviceMonitorSelectorNilUsesHelmValues: false
