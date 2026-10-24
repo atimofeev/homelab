@@ -34,9 +34,16 @@ Do not commit credentials or generated Kubernetes Secrets to Git.
 
 ## Google SSO through Dex
 
-Local admin/password login remains enabled. SSO signup is disabled: connect
-Google to your existing Paperless account rather than creating another user.
-This preserves document ownership and permissions.
+Dex/Google provides authentication; native Paperless settings control
+permissions. Google login can create a new account. Paperless reads the scalar
+`email` claim and grants superuser and staff rights only when it equals
+`legalaze94@gmail.com`. Role matching runs on each social login; no pre-created
+personal account or user-bootstrap Job is required.
+
+Other Google users may sign up, but receive no default groups or admin rights.
+Existing local `admin` and password login remain enabled for recovery and API-token
+bootstrap. Existing documents keep their ownership; the personal superuser can
+access them without transferring ownership.
 
 ESO generates `dex/dex-client-paperless` once and copies its password into the
 provider configuration in `paperless-ngx/paperless-dex`. Dex reads that same
@@ -51,13 +58,20 @@ No Google OAuth client changes are needed. Google still redirects to
 
 After syncing:
 
-1. Log in with your existing Paperless username/password.
-2. Open **My Profile** and connect the **Google** social account.
-3. Complete Google login, then log out and test the Google login button.
+1. Open Paperless and select **Google**.
+2. Sign in as `legalaze94@gmail.com`. Paperless creates the personal account and
+   applies admin rights automatically.
+3. Confirm admin access and access to existing documents. Local `admin` login
+   remains available.
 
-Only explicitly linked accounts can use SSO. Local admin login and the API-token
-bootstrap Job remain unchanged. Existing Reloader restarts Paperless when its
-SSO Secret or ConfigMap changes; the `Recreate` strategy causes a short outage.
+To use Google with an existing local account instead of creating a separate
+account, log in locally and connect Google through **My Profile**. The email role
+policy applies to that account too; a nonmatching Google email removes its
+superuser/staff rights on social login.
+
+The API-token bootstrap Job remains unchanged. Existing Reloader restarts
+Paperless when its SSO Secret or ConfigMap changes; the `Recreate` strategy causes
+a short outage.
 
 ## Generated credentials
 
