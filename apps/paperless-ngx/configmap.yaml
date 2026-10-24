@@ -14,8 +14,12 @@ metadata:
 data:
   PAPERLESS_URL: https://paperless.prosto.dev
   PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
-  PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "false"
+  PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "true"
   PAPERLESS_DISABLE_REGULAR_LOGIN: "false"
+  # Paperless accepts scalar claims for role matching.
+  PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS_CLAIM: email
+  PAPERLESS_SOCIAL_ACCOUNT_SYNC_SUPERUSER_GROUP: legalaze94@gmail.com
+  PAPERLESS_SOCIAL_ACCOUNT_SYNC_STAFF_GROUP: legalaze94@gmail.com
   PAPERLESS_TIME_ZONE: UTC
   PAPERLESS_ADMIN_USER: admin
   PAPERLESS_ADMIN_MAIL: admin@prosto.dev
