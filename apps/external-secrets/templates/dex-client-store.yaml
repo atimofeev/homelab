@@ -76,8 +76,12 @@ metadata:
 spec:
   conditions:
     - namespaces:
+        {{- $namespaces := list }}
         {{- range .Values.externalSecrets.dexClients }}
-        - {{ .namespace }}
+        {{- $namespaces = append $namespaces .namespace }}
+        {{- end }}
+        {{- range $namespaces | uniq }}
+        - {{ . }}
         {{- end }}
   provider:
     kubernetes:
