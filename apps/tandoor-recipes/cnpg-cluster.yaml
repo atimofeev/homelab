@@ -15,7 +15,11 @@ spec:
   maxSyncReplicas: 1
   postgresql:
     parameters:
+      wal_keep_size: "128MB"
+      max_wal_size: "256MB"
       max_slot_wal_keep_size: "512MB"
+      # Restore a bounded timeout when configuring WAL archive backups.
+      archive_timeout: "0"
   storage:
     size: 2Gi
   bootstrap:
