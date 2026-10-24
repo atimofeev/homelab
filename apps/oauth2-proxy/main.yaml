@@ -1,0 +1,136 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: oauth2-proxy
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+
+spec:
+  project: default
+  source:
+    repoURL: https://oauth2-proxy.github.io/manifests
+    chart: oauth2-proxy
+    targetRevision: 10.7.1
+    helm:
+      releaseName: oauth2-proxy
+      valuesObject:
+        fullnameOverride: oauth2-proxy
+        config:
+          existingSecret: oauth2-proxy-dex
+          requiredSecretKeys: [client-id, client-secret]
+          cookieName: __Host-prometheus_auth
+          # Domain rules are ORed with the file; never permit a whole domain.
+          emailDomains: []
+          upstreams: [static://202]
+        authenticatedEmailsFile:
+          enabled: true
+          persistence: configmap
+          restricted_access: |
+            legalaze94@gmail.com
+        extraArgs:
+          provider: oidc
+          oidc-issuer-url: https://dex.prosto.dev
+          redirect-url: https://prometheus.prosto.dev/oauth2/callback
+          scope: openid profile email offline_access
+          code-challenge-method: S256
+          insecure-oidc-skip-nonce: "false"
+          insecure-oidc-allow-unverified-email: "false"
+          reverse-proxy: "true"
+          skip-provider-button: "true"
+          whitelist-domain: prometheus.prosto.dev
+          cookie-secure: "true"
+          cookie-httponly: "true"
+          cookie-samesite: lax
+          cookie-expire: 8h
+          cookie-refresh: 1h
+          pass-access-token: "false"
+          pass-authorization-header: "false"
+          pass-basic-auth: "false"
+          pass-user-headers: "false"
+        extraEnv:
+          - name: OAUTH2_PROXY_COOKIE_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: oauth2-proxy-cookie
+                key: password
+        deploymentAnnotations:
+          secret.reloader.stakater.com/reload: oauth2-proxy-dex,oauth2-proxy-cookie
+        serviceAccount:
+          automountServiceAccountToken: false
+        service:
+          type: ClusterIP
+        networkPolicy:
+          create: true
+          ingress:
+            - from:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: traefik
+                  podSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: traefik
+              ports:
+                - protocol: TCP
+                  port: 4180
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
+        extraObjects:
+          - apiVersion: generators.external-secrets.io/v1alpha1
+            kind: Password
+            metadata:
+              name: oauth2-proxy-cookie
+              namespace: monitoring
+              annotations:
+                argocd.argoproj.io/sync-wave: "-1"
+            spec:
+              length: 32
+              digits: 8
+              symbols: 0
+              allowRepeat: true
+              encoding: base64url
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: oauth2-proxy-cookie
+              namespace: monitoring
+              annotations:
+                argocd.argoproj.io/sync-wave: "-1"
+            spec:
+              refreshPolicy: CreatedOnce
+              target:
+                creationPolicy: Orphan
+                immutable: true
+              dataFrom:
+                - sourceRef:
+                    generatorRef:
+                      apiVersion: generators.external-secrets.io/v1alpha1
+                      kind: Password
+                      name: oauth2-proxy-cookie
+          - apiVersion: traefik.io/v1alpha1
+            kind: Middleware
+            metadata:
+              name: prometheus-auth
+              namespace: monitoring
+            spec:
+              forwardAuth:
+                address: http://oauth2-proxy.monitoring.svc.cluster.local/
+                trustForwardHeader: false
+                addAuthCookiesToResponse:
+                  - __Host-prometheus_auth
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
