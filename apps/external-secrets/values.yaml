@@ -42,6 +42,15 @@ externalSecrets:
           mergePolicy: Replace
           data:
             GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: '{{ .clientSecret }}'
+    - name: oauth2-proxy
+      namespace: monitoring
+      target:
+        template:
+          engineVersion: v2
+          mergePolicy: Replace
+          data:
+            client-id: oauth2-proxy
+            client-secret: '{{ .clientSecret }}'
     - name: paperless
       namespace: paperless-ngx
       target:
