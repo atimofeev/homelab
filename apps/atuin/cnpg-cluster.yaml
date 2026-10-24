@@ -24,6 +24,8 @@ spec:
       wal_keep_size: "128MB"
       max_wal_size: "512MB"
       max_slot_wal_keep_size: "2GB"
+      # Restore a bounded timeout when configuring WAL archive backups.
+      archive_timeout: "0"
   bootstrap:
     initdb:
       database: atuin
