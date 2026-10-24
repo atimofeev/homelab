@@ -13,6 +13,9 @@ spec:
     podAntiAffinityType: required
     topologyKey: kubernetes.io/hostname
   maxSyncReplicas: 1
+  postgresql:
+    parameters:
+      max_slot_wal_keep_size: "512MB"
   storage:
     size: 2Gi
   bootstrap:
