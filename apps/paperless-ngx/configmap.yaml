@@ -13,6 +13,9 @@ metadata:
 
 data:
   PAPERLESS_URL: https://paperless.prosto.dev
+  PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+  PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "false"
+  PAPERLESS_DISABLE_REGULAR_LOGIN: "false"
   PAPERLESS_TIME_ZONE: UTC
   PAPERLESS_ADMIN_USER: admin
   PAPERLESS_ADMIN_MAIL: admin@prosto.dev

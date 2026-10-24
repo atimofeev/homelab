@@ -59,6 +59,16 @@ spec:
         - protocol: TCP
           port: 53
     - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - protocol: TCP
+          port: 8443
+    - to:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: paperless-ngx
