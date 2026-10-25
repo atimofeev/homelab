@@ -66,6 +66,7 @@ spec:
                 clientID: $GOOGLE_CLIENT_ID
                 clientSecret: $GOOGLE_CLIENT_SECRET
                 redirectURI: https://dex.prosto.dev/callback
+                promptType: ""
                 scopes: [profile, email]
           staticClients:
             - id: argocd
