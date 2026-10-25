@@ -33,7 +33,7 @@ spec:
               protocol: TCP
           env:
             - name: BLOCKY_API_URL
-              value: http://blocky:4000
+              value: http://blocky-api:4000
           livenessProbe:
             httpGet:
               path: /

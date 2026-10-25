@@ -11,6 +11,7 @@ spec:
     matchLabels:
       app.kubernetes.io/instance: blocky
       app.kubernetes.io/name: blocky
+      app.kubernetes.io/component: api
   namespaceSelector:
     matchNames:
       - blocky
