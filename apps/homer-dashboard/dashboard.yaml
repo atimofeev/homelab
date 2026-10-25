@@ -8,10 +8,21 @@ metadata:
 
 spec:
   replicas: 1
+  assets:
+    configMapRef:
+      name: main-homer-assets
+    icons:
+      favicon: favicon.ico
+      appleTouchIcon: apple-touch-icon.png
   homerConfig:
     title: "atimofeev/homelab"
     subtitle: "Dashboard"
     theme: walkxcode
+    colors:
+      light:
+        background-image: assets/wallpaper-light.webp
+      dark:
+        background-image: assets/wallpaper.webp
     header: true
     footer: '<p>Powered by Homer Operator</p>'
     logo: "https://raw.githubusercontent.com/rajsinghtech/homer-operator/main/homer/Homer-Operator.png"
