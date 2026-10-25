@@ -183,15 +183,23 @@ spec:
             enabled: true
             size: 1Gi
           ingress:
-            enabled: true
-            ingressClassName: nginx
-            hosts: [grafana.prosto.dev]
-            annotations:
-              item.homer.rajsingh.info/name: "Grafana"
-              item.homer.rajsingh.info/subtitle: "Monitoring Dashboards"
-              item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/grafana.webp"
-              service.homer.rajsingh.info/name: "Observability"
-              service.homer.rajsingh.info/icon: "fas fa-eye"
+            enabled: false
+          route:
+            main:
+              enabled: true
+              annotations:
+                item.homer.rajsingh.info/name: "Grafana"
+                item.homer.rajsingh.info/subtitle: "Monitoring Dashboards"
+                item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/grafana.webp"
+                service.homer.rajsingh.info/name: "Observability"
+                service.homer.rajsingh.info/icon: "fas fa-eye"
+              parentRefs:
+                - group: gateway.networking.k8s.io
+                  kind: Gateway
+                  name: traefik-gateway
+                  namespace: traefik
+                  sectionName: websecure
+              hostnames: [grafana.prosto.dev]
           dashboardProviders:
             dashboardproviders.yaml:
               apiVersion: 1
