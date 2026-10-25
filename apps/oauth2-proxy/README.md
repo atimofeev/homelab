@@ -46,11 +46,12 @@ Blocky UI pods in `blocky` and the selected Prometheus pods in `monitoring`.
 Metrics and control endpoints share this port, so Prometheus can technically
 reach control endpoints too. DNS stays available to LAN and cluster clients.
 
-NetworkPolicy enforcement must be verified before relying on these restrictions.
-The repository documents Flannel, which alone does not enforce NetworkPolicy;
-a separate policy engine or enforcing CNI is required. Removing the two HTTP
-LoadBalancer exposures does not depend on NetworkPolicy enforcement, but internal
-pod/ClusterIP access does.
+Talos enables Flannel's companion `kube-network-policies` controller through
+`KubeFlannelCNIConfig.kubeNetworkPoliciesEnabled` in the control-plane machine
+configuration. Verify the sidecar on every node and test allowed and denied
+traffic before relying on isolation. The controller defaults to fail-open when
+unavailable. Removing the two HTTP LoadBalancer exposures does not depend on
+NetworkPolicy enforcement, but internal pod/ClusterIP access does.
 
 No extra public hostname or domain-wide cookie is needed. The callback path
 `/oauth2/callback` is expanded to an absolute URL using the host supplied by
