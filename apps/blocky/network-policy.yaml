@@ -1,0 +1,36 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+  name: blocky
+  namespace: blocky
+
+spec:
+  podSelector:
+    matchLabels:
+      app: blocky
+  policyTypes:
+    - Ingress
+  ingress:
+    # DNS remains available to LAN and cluster clients.
+    - ports:
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
+    # Metrics and control endpoints share port 4000; both peers can access both.
+    - from:
+        - podSelector:
+            matchLabels:
+              app: blocky-ui
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+              operator.prometheus.io/name: kube-prometheus-stack-prometheus
+      ports:
+        - protocol: TCP
+          port: 4000
