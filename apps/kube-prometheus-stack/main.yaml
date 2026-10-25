@@ -240,18 +240,6 @@ spec:
                     group: traefik.io
                     kind: Middleware
                     name: prometheus-auth
-              additionalRules:
-                # OAuth callbacks must reach oauth2-proxy without ForwardAuth.
-                - matches:
-                    - path:
-                        type: PathPrefix
-                        value: /oauth2/
-                  backendRefs:
-                    - group: ""
-                      kind: Service
-                      name: oauth2-proxy
-                      port: 80
-                      weight: 1
           prometheusSpec:
             externalUrl: https://prometheus.prosto.dev
             podMonitorSelectorNilUsesHelmValues: false
