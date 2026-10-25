@@ -18,6 +18,7 @@ spec:
       labels:
         app: vert
     spec:
+      automountServiceAccountToken: false
       securityContext:
         fsGroup: 101
       containers:
