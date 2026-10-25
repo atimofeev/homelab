@@ -20,9 +20,9 @@ spec:
     theme: walkxcode
     colors:
       light:
-        background-image: assets/wallpaper-light.webp
+        background-image: /assets/wallpaper-light.webp
       dark:
-        background-image: assets/wallpaper.webp
+        background-image: /assets/wallpaper.webp
     header: true
     footer: '<p>Powered by Homer Operator</p>'
     logo: "https://raw.githubusercontent.com/rajsinghtech/homer-operator/main/homer/Homer-Operator.png"
