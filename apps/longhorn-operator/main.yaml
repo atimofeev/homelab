@@ -27,11 +27,26 @@ spec:
             concurrentReplicaRebuildPerNodeLimit: "2"
             snapshotHeavyTaskConcurrentLimit: "2"
             storageReservedPercentageForDefaultDisk: "10"
+          service:
+            ui:
+              type: ClusterIP
           ingress:
+            enabled: false
+          httproute:
             enabled: true
-            host: longhorn.prosto.dev
-            ingressClassName: nginx
-            secureBackends: true
+            parentRefs:
+              - group: gateway.networking.k8s.io
+                kind: Gateway
+                name: traefik-gateway
+                namespace: traefik
+                sectionName: websecure
+            hostnames: [longhorn.prosto.dev]
+            filters:
+              - type: ExtensionRef
+                extensionRef:
+                  group: traefik.io
+                  kind: Middleware
+                  name: longhorn-auth
             annotations:
               item.homer.rajsingh.info/name: "Longhorn"
               item.homer.rajsingh.info/subtitle: "Distributed Storage"
