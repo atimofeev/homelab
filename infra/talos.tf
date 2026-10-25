@@ -109,6 +109,17 @@ data "talos_machine_configuration" "this" {
       apiVersion    = "v1alpha1"
       kind          = "KubeAPIServerConfig"
       certExtraSANs = distinct(concat([var.talos_api_vip], local.node_ips))
+      }), yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeServiceAccountConfig"
+      issuer = {
+        issuerURL = local.oidc_issuer_url
+      }
+      # Keep existing tokens valid after switching the signing issuer.
+      accepted = {
+        issuers   = [local.cluster_endpoint]
+        audiences = [local.cluster_endpoint, local.oidc_issuer_url]
+      }
     })] : [],
     [
       yamlencode({

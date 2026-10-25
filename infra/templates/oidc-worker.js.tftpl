@@ -1,0 +1,26 @@
+const documents = new Map(Object.entries(${documents}));
+
+export default {
+  fetch(request) {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      return new Response("Method not allowed", {
+        status: 405,
+        headers: { Allow: "GET, HEAD" },
+      });
+    }
+
+    const document = documents.get(new URL(request.url).pathname);
+    if (document === undefined) {
+      return new Response(request.method === "HEAD" ? null : "Not found", {
+        status: 404,
+      });
+    }
+
+    return new Response(request.method === "HEAD" ? null : JSON.stringify(document), {
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "public, max-age=300",
+      },
+    });
+  },
+};
