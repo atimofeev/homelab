@@ -42,7 +42,7 @@ spec:
           insecure-oidc-allow-unverified-email: "false"
           reverse-proxy: "true"
           skip-provider-button: "true"
-          whitelist-domain: prometheus.prosto.dev,alertmanager.prosto.dev,longhorn.prosto.dev
+          whitelist-domain: prometheus.prosto.dev,alertmanager.prosto.dev,longhorn.prosto.dev,blocky-ui.prosto.dev
           cookie-secure: "true"
           cookie-httponly: "true"
           cookie-samesite: lax
@@ -76,6 +76,7 @@ spec:
             - prometheus.prosto.dev
             - alertmanager.prosto.dev
             - longhorn.prosto.dev
+            - blocky-ui.prosto.dev
           annotations:
             item.homer.rajsingh.info/hide: "true"
             item.homer.rajsingh.info/name: "Admin Sign-In"
