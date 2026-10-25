@@ -10,19 +10,24 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: https://kubernetes-sigs.github.io/metrics-server
-    chart: metrics-server
-    targetRevision: 3.14.0
-    helm:
-      releaseName: metrics-server
-      valuesObject:
-        # FIX: for self-signed certs
-        args: ["--kubelet-insecure-tls=true", "--kubelet-preferred-address-types=InternalIP"]
-        metrics:
-          enabled: true
-        serviceMonitor:
-          enabled: true
+  sources:
+    - repoURL: https://kubernetes-sigs.github.io/metrics-server
+      chart: metrics-server
+      targetRevision: 3.14.0
+      helm:
+        releaseName: metrics-server
+        valuesObject:
+          # FIX: for self-signed certs
+          args: ["--kubelet-insecure-tls=true", "--kubelet-preferred-address-types=InternalIP"]
+          metrics:
+            enabled: true
+          serviceMonitor:
+            enabled: true
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/metrics-server
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
