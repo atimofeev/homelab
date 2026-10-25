@@ -14,8 +14,11 @@ metadata:
 
 spec:
   parentRefs:
-    - name: traefik-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: traefik-gateway
       namespace: traefik
+      sectionName: websecure
   hostnames:
     - "blocky-ui.prosto.dev"
   rules:
@@ -23,6 +26,15 @@ spec:
         - path:
             type: PathPrefix
             value: /
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: blocky-ui-auth
       backendRefs:
-        - name: blocky-ui
+        - group: ""
+          kind: Service
+          name: blocky-ui
           port: 80
+          weight: 1
