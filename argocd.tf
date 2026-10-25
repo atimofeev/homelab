@@ -24,7 +24,24 @@ resource "helm_release" "argo_cd" {
       }
       global = {
         domain = "argocd.prosto.dev"
+        # The chart's server policy is allow-all; replace it via extraObjects.
+        networkPolicy = {
+          create = false
+        }
       }
+      controller = {
+        networkPolicy = { create = true }
+      }
+      repoServer = {
+        networkPolicy = { create = true }
+      }
+      redis = {
+        networkPolicy = { create = true }
+      }
+      notifications = {
+        networkPolicy = { create = true }
+      }
+      extraObjects = yamldecode(file("${path.module}/argocd-network-policies.yaml"))
       dex = {
         enabled = false
       }
