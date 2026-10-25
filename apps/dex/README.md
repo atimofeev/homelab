@@ -1,7 +1,7 @@
 # Dex
 
-Dex brokers Google login for ArgoCD, Grafana, Paperless, and Prometheus through
-oauth2-proxy.
+Dex brokers Google login for ArgoCD, Grafana, Paperless, and the Prometheus,
+Alertmanager, and Longhorn UIs through oauth2-proxy.
 
 ## Credentials
 
@@ -38,8 +38,9 @@ label, Grafana receives its client-secret environment variable, Paperless
 receives provider JSON, and oauth2-proxy receives client-id/client-secret keys.
 Dex reads source Secrets directly. Reloader annotations reload Dex, Grafana,
 Paperless, and oauth2-proxy when their referenced Secrets change; ArgoCD watches
-its labeled SSO Secret. Prometheus access is restricted by oauth2-proxy's exact
-email allowlist, not by the shared Dex connector; see `apps/oauth2-proxy/README.md`.
+its labeled SSO Secret. Prometheus, Alertmanager, and Longhorn access is restricted
+by oauth2-proxy's exact email allowlist, not by the shared Dex connector; see
+`apps/oauth2-proxy/README.md`.
 
 ## Migration
 
