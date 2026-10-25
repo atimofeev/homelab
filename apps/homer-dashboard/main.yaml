@@ -14,8 +14,6 @@ spec:
     repoURL: https://github.com/atimofeev/homelab
     targetRevision: HEAD
     path: apps/homer-dashboard
-    directory:
-      exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: homer
