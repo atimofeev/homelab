@@ -32,6 +32,7 @@ spec:
             legalaze94@gmail.com
         extraArgs:
           provider: oidc
+          approval-prompt: auto
           oidc-issuer-url: https://dex.prosto.dev
           # Infer the callback host from Traefik; Dex permits only registered hosts.
           redirect-url: /oauth2/callback
