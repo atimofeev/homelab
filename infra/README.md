@@ -39,6 +39,51 @@ wipes STATE and EPHEMERAL; do not use an iPXE reboot as a rollout method.
 
 VIP API access is verified, but deliberate VIP failover testing remains outstanding.
 
+## Flannel NetworkPolicy Enforcement
+
+Control-plane machine configurations enable `kubeNetworkPoliciesEnabled` in the
+Talos `KubeFlannelCNIConfig` document. Talos manages the `kube-network-policies`
+sidecar and its RBAC in the existing `kube-system/kube-flannel` DaemonSet; no
+separate CNI or Helm release is needed. Keep this control-plane-only document out
+of worker patches and keep the setting consistent across control-plane nodes.
+
+On existing clusters, applying the machine configuration only updates Talos's
+rendered bootstrap manifest. Talos 1.14's bootstrap controller creates Kubernetes
+objects once and does not reconcile existing objects. After reviewing the
+rendered bundle and preserving the existing Flannel image/settings, apply it
+once using Talos's field manager:
+
+```bash
+talosctl --nodes "$CONTROL_PLANE_IP" get manifests 05-flannel -o json |
+  jq '{apiVersion: "v1", kind: "List", items: .spec}' |
+  kubectl apply --server-side --field-manager=talos -f -
+kubectl -n kube-system rollout status daemonset/kube-flannel
+```
+
+Confirm the DaemonSet template actually contains `kube-network-policies` before
+trusting rollout status; an unchanged, old DaemonSet also reports success.
+
+Audit existing ingress and egress policies before enabling enforcement. Policies
+that were previously inert immediately affect selected workloads as the DaemonSet
+rolls across nodes. In particular, the Longhorn chart's manager policy needs the
+additive Prometheus allowance in
+`../apps/longhorn-operator/prometheus-network-policy.yaml` to preserve metrics on
+TCP 9500. Apply that allowance before enabling the controller. Blocky metrics and
+API share TCP 4000, allowed from Blocky UI and the selected Prometheus pods.
+
+Review a saved plan and apply machine configuration updates serially; do not
+combine this rollout with unrelated infrastructure changes. Verify the sidecar
+on every node, fresh allowed and denied connections via both Services and pod
+IPs, cross-node traffic, DNS over TCP/UDP, monitoring targets, and Paperless OIDC.
+The bundled controller defaults to fail-open while it is unavailable; policy
+objects or a Ready Flannel container alone do not prove enforcement.
+
+For rollback, set `kubeNetworkPoliciesEnabled` to false consistently on all
+control planes, reapply their newly rendered `05-flannel` bundle with the same
+field manager, and verify removal of the sidecar and traffic recovery. This
+restores connectivity by disabling policy isolation; it is not a security-safe
+steady state. Do not disable or replace Flannel itself.
+
 ## Inspiration
 
 - https://github.com/hcloud-k8s/terraform-hcloud-kubernetes/
