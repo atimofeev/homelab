@@ -9,8 +9,8 @@ metadata:
     item.homer.rajsingh.info/name: "Blocky UI"
     item.homer.rajsingh.info/subtitle: "Blocky Control & Stats"
     item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/blocky.webp"
-    service.homer.rajsingh.info/name: "Apps"
-    service.homer.rajsingh.info/icon: "fas fa-screwdriver-wrench"
+    service.homer.rajsingh.info/name: "System"
+    service.homer.rajsingh.info/icon: "fas fa-cogs"
 
 spec:
   parentRefs:
