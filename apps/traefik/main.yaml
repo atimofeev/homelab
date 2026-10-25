@@ -10,30 +10,35 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: oci://ghcr.io/traefik/helm/traefik
-    chart: traefik
-    targetRevision: 42.1.3
-    helm:
-      releaseName: traefik
-      valuesObject:
-        providers:
-          kubernetesGateway:
-            enabled: true
-        gateway:
-          listeners:
-            web:
-              namespacePolicy:
-                from: All
-            websecure:
-              port: 8443
-              protocol: HTTPS
-              namespacePolicy:
-                from: All
-              certificateRefs:
-                - name: prosto-dev-wildcard-tls
-                  group: ""
-                  kind: Secret
+  sources:
+    - repoURL: oci://ghcr.io/traefik/helm/traefik
+      chart: traefik
+      targetRevision: 42.1.3
+      helm:
+        releaseName: traefik
+        valuesObject:
+          providers:
+            kubernetesGateway:
+              enabled: true
+          gateway:
+            listeners:
+              web:
+                namespacePolicy:
+                  from: All
+              websecure:
+                port: 8443
+                protocol: HTTPS
+                namespacePolicy:
+                  from: All
+                certificateRefs:
+                  - name: prosto-dev-wildcard-tls
+                    group: ""
+                    kind: Secret
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/traefik
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
