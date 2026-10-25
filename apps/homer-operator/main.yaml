@@ -10,19 +10,24 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: oci://ghcr.io/rajsinghtech/homer-operator/charts/homer-operator
-    chart: homer-operator
-    targetRevision: 1.2.4
-    helm:
-      releaseName: homer-operator
-      valuesObject:
-        operator:
-          enableGatewayAPI: true
-        prometheusRule:
-          enabled: true
-        grafanaDashboard:
-          enabled: true
+  sources:
+    - repoURL: oci://ghcr.io/rajsinghtech/homer-operator/charts/homer-operator
+      chart: homer-operator
+      targetRevision: 1.2.4
+      helm:
+        releaseName: homer-operator
+        valuesObject:
+          operator:
+            enableGatewayAPI: true
+          prometheusRule:
+            enabled: true
+          grafanaDashboard:
+            enabled: true
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/homer-operator
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: homer
