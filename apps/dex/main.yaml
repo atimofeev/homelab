@@ -10,122 +10,127 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: https://dexidp.github.io/helm-charts
-    chart: dex
-    targetRevision: 0.26.0
-    helm:
-      releaseName: dex
-      valuesObject:
-        deploymentAnnotations:
-          secret.reloader.stakater.com/reload: dex-credentials,dex-client-argocd,dex-client-grafana,dex-client-paperless,dex-client-oauth2-proxy
-        envFrom:
-          - secretRef:
-              name: dex-credentials
-        envVars:
-          - name: ARGOCD_CLIENT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: dex-client-argocd
-                key: password
-          - name: GRAFANA_CLIENT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: dex-client-grafana
-                key: password
-          - name: PAPERLESS_CLIENT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: dex-client-paperless
-                key: password
-          - name: OAUTH2_PROXY_CLIENT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: dex-client-oauth2-proxy
-                key: password
-        volumes:
-          - name: tmp
-            emptyDir: {}
-        volumeMounts:
-          - name: tmp
-            mountPath: /tmp
-        config:
-          issuer: https://dex.prosto.dev
-          storage:
-            type: kubernetes
-            config:
-              inCluster: true
-          oauth2:
-            skipApprovalScreen: true
-          enablePasswordDB: false
-          connectors:
-            - type: google
-              id: google
-              name: Google
+  sources:
+    - repoURL: https://dexidp.github.io/helm-charts
+      chart: dex
+      targetRevision: 0.26.0
+      helm:
+        releaseName: dex
+        valuesObject:
+          deploymentAnnotations:
+            secret.reloader.stakater.com/reload: dex-credentials,dex-client-argocd,dex-client-grafana,dex-client-paperless,dex-client-oauth2-proxy
+          envFrom:
+            - secretRef:
+                name: dex-credentials
+          envVars:
+            - name: ARGOCD_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dex-client-argocd
+                  key: password
+            - name: GRAFANA_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dex-client-grafana
+                  key: password
+            - name: PAPERLESS_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dex-client-paperless
+                  key: password
+            - name: OAUTH2_PROXY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dex-client-oauth2-proxy
+                  key: password
+          volumes:
+            - name: tmp
+              emptyDir: {}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          config:
+            issuer: https://dex.prosto.dev
+            storage:
+              type: kubernetes
               config:
-                clientID: $GOOGLE_CLIENT_ID
-                clientSecret: $GOOGLE_CLIENT_SECRET
-                redirectURI: https://dex.prosto.dev/callback
-                promptType: ""
-                scopes: [profile, email]
-          staticClients:
-            - id: argocd
-              name: ArgoCD
-              secretEnv: ARGOCD_CLIENT_SECRET
-              redirectURIs:
-                - https://argocd.prosto.dev/auth/callback
-            - id: grafana
-              name: Grafana
-              secretEnv: GRAFANA_CLIENT_SECRET
-              redirectURIs:
-                - https://grafana.prosto.dev/login/generic_oauth
-            - id: paperless
-              name: Paperless-ngx
-              secretEnv: PAPERLESS_CLIENT_SECRET
-              redirectURIs:
-                - https://paperless.prosto.dev/accounts/oidc/dex/login/callback/
-            - id: oauth2-proxy
-              name: Homelab Admin UIs
-              secretEnv: OAUTH2_PROXY_CLIENT_SECRET
-              redirectURIs:
-                - https://prometheus.prosto.dev/oauth2/callback
-                - https://alertmanager.prosto.dev/oauth2/callback
-                - https://longhorn.prosto.dev/oauth2/callback
-                - https://blocky-ui.prosto.dev/oauth2/callback
-        httpRoute:
-          enabled: true
-          annotations:
-            item.homer.rajsingh.info/hide: "true"
-            item.homer.rajsingh.info/name: "Dex"
-            item.homer.rajsingh.info/subtitle: "Single Sign-On"
-            item.homer.rajsingh.info/logo: "https://dexidp.io/img/logos/dex-glyph-color.svg"
-            service.homer.rajsingh.info/name: "System"
-            service.homer.rajsingh.info/icon: "fas fa-cogs"
-          parentRefs:
-            - name: traefik-gateway
-              namespace: traefik
-              sectionName: websecure
-          hostnames:
-            - dex.prosto.dev
-        podSecurityContext:
-          runAsNonRoot: true
-          runAsUser: 1001
-          runAsGroup: 1001
-          fsGroup: 1001
-          seccompProfile:
-            type: RuntimeDefault
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop: [ALL]
-        resources:
-          requests:
-            cpu: 10m
-            memory: 64Mi
-          limits:
-            cpu: 500m
-            memory: 256Mi
+                inCluster: true
+            oauth2:
+              skipApprovalScreen: true
+            enablePasswordDB: false
+            connectors:
+              - type: google
+                id: google
+                name: Google
+                config:
+                  clientID: $GOOGLE_CLIENT_ID
+                  clientSecret: $GOOGLE_CLIENT_SECRET
+                  redirectURI: https://dex.prosto.dev/callback
+                  promptType: ""
+                  scopes: [profile, email]
+            staticClients:
+              - id: argocd
+                name: ArgoCD
+                secretEnv: ARGOCD_CLIENT_SECRET
+                redirectURIs:
+                  - https://argocd.prosto.dev/auth/callback
+              - id: grafana
+                name: Grafana
+                secretEnv: GRAFANA_CLIENT_SECRET
+                redirectURIs:
+                  - https://grafana.prosto.dev/login/generic_oauth
+              - id: paperless
+                name: Paperless-ngx
+                secretEnv: PAPERLESS_CLIENT_SECRET
+                redirectURIs:
+                  - https://paperless.prosto.dev/accounts/oidc/dex/login/callback/
+              - id: oauth2-proxy
+                name: Homelab Admin UIs
+                secretEnv: OAUTH2_PROXY_CLIENT_SECRET
+                redirectURIs:
+                  - https://prometheus.prosto.dev/oauth2/callback
+                  - https://alertmanager.prosto.dev/oauth2/callback
+                  - https://longhorn.prosto.dev/oauth2/callback
+                  - https://blocky-ui.prosto.dev/oauth2/callback
+          httpRoute:
+            enabled: true
+            annotations:
+              item.homer.rajsingh.info/hide: "true"
+              item.homer.rajsingh.info/name: "Dex"
+              item.homer.rajsingh.info/subtitle: "Single Sign-On"
+              item.homer.rajsingh.info/logo: "https://dexidp.io/img/logos/dex-glyph-color.svg"
+              service.homer.rajsingh.info/name: "System"
+              service.homer.rajsingh.info/icon: "fas fa-cogs"
+            parentRefs:
+              - name: traefik-gateway
+                namespace: traefik
+                sectionName: websecure
+            hostnames:
+              - dex.prosto.dev
+          podSecurityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            fsGroup: 1001
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/dex
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: dex
