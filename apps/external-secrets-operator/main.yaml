@@ -10,22 +10,27 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: https://charts.external-secrets.io
-    chart: external-secrets
-    targetRevision: 2.14.0
-    helm:
-      releaseName: external-secrets
-      valuesObject:
-        bitwarden-sdk-server:
-          enabled: true
-          podAnnotations:
-            reloader.stakater.com/auto: "true"
-        leaderElect: true
-        serviceMonitor:
-          enabled: true
-        grafanaDashboard:
-          enabled: true
+  sources:
+    - repoURL: https://charts.external-secrets.io
+      chart: external-secrets
+      targetRevision: 2.14.0
+      helm:
+        releaseName: external-secrets
+        valuesObject:
+          bitwarden-sdk-server:
+            enabled: true
+            podAnnotations:
+              reloader.stakater.com/auto: "true"
+          leaderElect: true
+          serviceMonitor:
+            enabled: true
+          grafanaDashboard:
+            enabled: true
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/external-secrets-operator
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: external-secrets
