@@ -6,6 +6,7 @@ namespace: homer
 resources:
   - dashboard.yaml
   - http-route.yaml
+  - network-policy.yaml
 
 configMapGenerator:
   - name: main-homer-assets
