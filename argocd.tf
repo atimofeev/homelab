@@ -29,6 +29,9 @@ resource "helm_release" "argo_cd" {
         enabled = false
       }
       configs = {
+        params = {
+          "server.insecure" = true
+        }
         cm = {
           url                       = "https://argocd.prosto.dev"
           "admin.enabled"           = "false"
@@ -49,16 +52,25 @@ resource "helm_release" "argo_cd" {
       }
       server = {
         ingress = {
-          enabled          = true
-          ingressClassName = "nginx"
+          enabled = false
+        }
+        httproute = {
+          enabled = true
           annotations = {
-            "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
-            "item.homer.rajsingh.info/name"                = "ArgoCD"
-            "item.homer.rajsingh.info/subtitle"            = "GitOps Continuous Delivery"
-            "item.homer.rajsingh.info/logo"                = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/argo-cd.webp"
-            "service.homer.rajsingh.info/name"             = "System"
-            "service.homer.rajsingh.info/icon"             = "fas fa-cogs"
+            "item.homer.rajsingh.info/name"     = "ArgoCD"
+            "item.homer.rajsingh.info/subtitle" = "GitOps Continuous Delivery"
+            "item.homer.rajsingh.info/logo"     = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/argo-cd.webp"
+            "service.homer.rajsingh.info/name"  = "System"
+            "service.homer.rajsingh.info/icon"  = "fas fa-cogs"
           }
+          parentRefs = [{
+            group       = "gateway.networking.k8s.io"
+            kind        = "Gateway"
+            name        = "traefik-gateway"
+            namespace   = "traefik"
+            sectionName = "websecure"
+          }]
+          hostnames = ["argocd.prosto.dev"]
         }
       }
     })
