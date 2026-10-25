@@ -1,10 +1,10 @@
 # Admin UI ForwardAuth
 
-Prometheus, Alertmanager, and Longhorn browser access uses Traefik ForwardAuth
--> oauth2-proxy -> Dex -> Google. Only the exact addresses in
+Prometheus, Alertmanager, Longhorn, and Blocky UI browser access uses Traefik
+ForwardAuth -> oauth2-proxy -> Dex -> Google. Only the exact addresses in
 `authenticatedEmailsFile.restricted_access` in `main.yaml` are allowed. Currently
 this is the same single account allowed by Grafana. Other Google accounts may
-log in to Dex but cannot access these three UIs or their external HTTP APIs.
+log in to Dex but cannot access these four UIs or their external HTTP APIs.
 
 Keep `config.emailDomains: []`. Domain rules and the email file are ORed:
 `*` would bypass the email restriction and `gmail.com` would allow every Gmail
@@ -14,17 +14,19 @@ Google connector as the trusted source of verified email claims.
 
 ## Routing
 
-Each application's chart generates its protected HTTPRoute on Traefik's HTTPS
-listener. The old nginx Ingresses are disabled:
+Protected HTTPRoutes attach to Traefik's HTTPS listener. Prometheus, Alertmanager,
+and Longhorn use chart-native routes; Blocky UI has a standalone route. The old
+nginx Ingresses are disabled:
 
 | Host | Namespace | ForwardAuth Middleware |
 | --- | --- | --- |
 | `prometheus.prosto.dev` | `monitoring` | `prometheus-auth` |
 | `alertmanager.prosto.dev` | `monitoring` | `alertmanager-auth` |
 | `longhorn.prosto.dev` | `longhorn-system` | `longhorn-auth` |
+| `blocky-ui.prosto.dev` | `blocky` | `blocky-ui-auth` |
 
 The oauth2-proxy chart generates one more HTTPRoute in `monitoring`, matching
-`/oauth2/` on all three hosts. This more-specific path goes directly to the
+`/oauth2/` on all four hosts. This more-specific path goes directly to the
 proxy without ForwardAuth, so login and callbacks cannot loop. It never routes
 to application backends. All remaining application paths require ForwardAuth.
 The callback route and proxy Service share a namespace, so no cross-namespace
@@ -37,9 +39,22 @@ authentication boundary, not authentication on internal application Services.
 The oauth2-proxy NetworkPolicy allows ingress only from Traefik pods; it requires
 a CNI that enforces Kubernetes NetworkPolicy.
 
+Blocky UI is also ClusterIP-only, with ingress limited to Traefik pods. The Blocky
+DNS LoadBalancer exposes only TCP/UDP 53. An internal `blocky-api` Service exposes
+port 4000 for Blocky UI and Prometheus scraping; its NetworkPolicy permits only
+Blocky UI pods in `blocky` and the selected Prometheus pods in `monitoring`.
+Metrics and control endpoints share this port, so Prometheus can technically
+reach control endpoints too. DNS stays available to LAN and cluster clients.
+
+NetworkPolicy enforcement must be verified before relying on these restrictions.
+The repository documents Flannel, which alone does not enforce NetworkPolicy;
+a separate policy engine or enforcing CNI is required. Removing the two HTTP
+LoadBalancer exposures does not depend on NetworkPolicy enforcement, but internal
+pod/ClusterIP access does.
+
 No extra public hostname or domain-wide cookie is needed. The callback path
 `/oauth2/callback` is expanded to an absolute URL using the host supplied by
-Traefik. Dex registers only the three exact HTTPS callback URLs. Traefik does
+Traefik. Dex registers only the four exact HTTPS callback URLs. Traefik does
 not trust client-supplied forwarded headers on these auth middlewares.
 
 The cookie name `__Host-prometheus_auth` is retained for compatibility with
@@ -47,12 +62,12 @@ existing Prometheus sessions. Despite its historical name, each host has its
 own Secure, HttpOnly, SameSite=Lax, host-only cookie. Visiting another UI starts
 its own proxy session; an existing Dex/Google login can avoid another credential
 prompt. Traefik copies renewed auth cookies to the browser. The redirect
-allowlist contains only the three exact app hosts; it is separate from the
+allowlist contains only the four exact app hosts; it is separate from the
 email allowlist.
 
 ## Secrets
 
-All three apps reuse the existing oauth2-proxy deployment, Dex client, exact-email
+All four apps reuse the existing oauth2-proxy deployment, Dex client, exact-email
 list, and generated secrets. No new credentials or secret rotation are needed.
 ESO generates the Dex client secret using the existing `dexClients` machinery,
 copies it to `monitoring/oauth2-proxy-dex`, and exposes the matching source to
@@ -61,6 +76,7 @@ Dex. Registered callbacks are:
 - `https://prometheus.prosto.dev/oauth2/callback`
 - `https://alertmanager.prosto.dev/oauth2/callback`
 - `https://longhorn.prosto.dev/oauth2/callback`
+- `https://blocky-ui.prosto.dev/oauth2/callback`
 
 Google's existing Dex callback does not change.
 
@@ -93,6 +109,15 @@ After publishing and ArgoCD sync:
    including direct API requests. A valid Dex login alone must not grant access.
 6. Confirm Grafana still queries Prometheus, Prometheus still delivers alerts to
    Alertmanager internally, and Longhorn's volumes/replicas remain healthy.
+7. Confirm Blocky DNS still answers TCP and UDP queries at `192.168.88.50:53`.
+   Verify all Blocky Prometheus targets remain up through `blocky-api:4000`.
+8. With a verified enforcing policy engine, confirm Blocky UI pods can reach
+   `blocky-api:4000`, the selected Prometheus pods can scrape it, and unrelated
+   pods cannot reach either the API or Blocky UI (Service port 80, pod port 3000).
+   Confirm
+   LAN access to `192.168.88.50:4000` and the former UI LoadBalancer IP fails.
+   Test both allowed and denied traffic; accepted policy objects alone do not
+   prove enforcement. Existing connections may survive until reconnecting.
 
 To change access, edit the exact-email list and sync. The chart rolls the proxy
 on list changes, and the proxy also watches its mounted file. Once each replica
