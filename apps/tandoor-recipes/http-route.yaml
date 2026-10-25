@@ -9,7 +9,7 @@ metadata:
     item.homer.rajsingh.info/name: "Tandoor Recipes"
     item.homer.rajsingh.info/subtitle: "Recipes, meals, shopping lists and more!"
     item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/tandoor-recipes.webp"
-    service.homer.rajsingh.info/name: "Tools"
+    service.homer.rajsingh.info/name: "Apps"
     service.homer.rajsingh.info/icon: "fas fa-screwdriver-wrench"
 
 spec:
