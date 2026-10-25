@@ -54,12 +54,19 @@ After publishing and ArgoCD sync:
    and for Dex and oauth2-proxy rollouts to finish. A brief login interruption
    is possible while the independently synced apps converge.
 2. Confirm the old Prometheus Ingress is gone, and the HTTPRoute reports
-   `Accepted=True` and `ResolvedRefs=True` on `traefik-gateway`.
-3. Open Prometheus in a private browser: it must redirect to Dex/Google.
-4. Sign in with the listed account: both UI and `/api/v1/query` must work.
-5. Sign in with a different Google account: access must be denied, including
+   `Accepted=True` and `ResolvedRefs=True` on `traefik-gateway`. Keep reference
+   group/kind and backend weight defaults explicit in the chart values;
+   otherwise API defaulting can leave ArgoCD perpetually OutOfSync.
+3. Check that DNS resolves to the Traefik Gateway address, not the old nginx
+   address. ExternalDNS uses a 30-minute DNS TTL; client caches may retain the
+   old address after the router record updates. Compare a direct router DNS
+   query with the client resolver before changing routing. On a Linux client
+   using systemd-resolved, `resolvectl flush-caches` clears that local cache.
+4. Open Prometheus in a private browser: it must redirect to Dex/Google.
+5. Sign in with the listed account: both UI and `/api/v1/query` must work.
+6. Sign in with a different Google account: access must be denied, including
    direct API requests. A valid Dex login alone must not grant access.
-6. Confirm Grafana still queries its internal Prometheus datasource.
+7. Confirm Grafana still queries its internal Prometheus datasource.
 
 To change access, edit the exact-email list and sync. The chart rolls the proxy
 on list changes, and the proxy also watches its mounted file. Once each replica
