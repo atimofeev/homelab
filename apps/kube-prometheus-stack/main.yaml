@@ -10,250 +10,255 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    chart: kube-prometheus-stack
-    targetRevision: 92.13.1
-    helm:
-      releaseName: kube-prometheus-stack
-      valuesObject:
-        alertmanager:
-          alertmanagerSpec:
-            externalUrl: https://alertmanager.prosto.dev
-            secrets:
-              - alertmanager-telegram
-          config:
-            global:
-              resolve_timeout: 5m
-            inhibit_rules:
-              - source_matchers:
-                  - 'severity = critical'
-                target_matchers:
-                  - 'severity =~ warning|info'
-                equal:
-                  - 'namespace'
-                  - 'alertname'
-              - source_matchers:
-                  - 'severity = warning'
-                target_matchers:
-                  - 'severity = info'
-                equal:
-                  - 'namespace'
-                  - 'alertname'
-              - source_matchers:
-                  - 'alertname = InfoInhibitor'
-                target_matchers:
-                  - 'severity = info'
-                equal:
-                  - 'namespace'
-              - target_matchers:
-                  - 'alertname = InfoInhibitor'
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 92.13.1
+      helm:
+        releaseName: kube-prometheus-stack
+        valuesObject:
+          alertmanager:
+            alertmanagerSpec:
+              externalUrl: https://alertmanager.prosto.dev
+              secrets:
+                - alertmanager-telegram
+            config:
+              global:
+                resolve_timeout: 5m
+              inhibit_rules:
+                - source_matchers:
+                    - 'severity = critical'
+                  target_matchers:
+                    - 'severity =~ warning|info'
+                  equal:
+                    - 'namespace'
+                    - 'alertname'
+                - source_matchers:
+                    - 'severity = warning'
+                  target_matchers:
+                    - 'severity = info'
+                  equal:
+                    - 'namespace'
+                    - 'alertname'
+                - source_matchers:
+                    - 'alertname = InfoInhibitor'
+                  target_matchers:
+                    - 'severity = info'
+                  equal:
+                    - 'namespace'
+                - target_matchers:
+                    - 'alertname = InfoInhibitor'
+              route:
+                group_by: ['...']
+                group_wait: 30s
+                group_interval: 5m
+                repeat_interval: 12h
+                receiver: 'null'
+                routes:
+                  - receiver: 'null'
+                    matchers:
+                      - alertname = "Watchdog"
+                  - receiver: 'telegram'
+                    matchers:
+                      - 'severity =~ warning|critical'
+              receivers:
+                - name: 'null'
+                - name: 'telegram'
+                  telegram_configs:
+                    - send_resolved: true
+                      bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram/bot-token
+                      chat_id: 521324626
+                      parse_mode: HTML
+              templates:
+                - '/etc/alertmanager/config/*.tmpl'
+            templateFiles:
+              telegram.tmpl: |
+                {{ define "telegram.default.message" -}}
+                {{- $alert := index .Alerts 0 -}}
+                {{- if eq $alert.Status "firing" -}}🔴{{- else -}}🟢{{- end }} <b>{{ $alert.Labels.alertname }}</b>
+                {{ with $alert.Labels.severity -}}
+                <b>Severity:</b> {{ . }}
+                {{ end -}}
+                {{ with $alert.Annotations.summary -}}
+                <b>Summary:</b> {{ . }}
+                {{ end -}}
+                {{ with $alert.Annotations.description -}}
+                <b>Description:</b> {{ . }}
+                {{ end -}}
+                {{ with $alert.Labels.instance -}}
+                <b>Target:</b> {{ . }}
+                {{ end -}}
+                {{ with $alert.Labels.job -}}
+                <b>Job:</b> {{ . }}
+                {{ end -}}
+                {{ with $alert.StartsAt -}}
+                <b>Started:</b> {{ . }}
+                {{ end -}}
+                {{ if eq $alert.Status "resolved" -}}
+                <b>Ended:</b> {{ $alert.EndsAt }}
+                {{ end -}}
+                {{ with $alert.GeneratorURL -}}
+                <a href="{{ . }}">Prometheus</a>
+                {{ end -}}
+                {{ with $alert.Annotations.runbook_url -}}
+                <a href="{{ . }}">Runbook</a>
+                {{ end -}}
+                {{ end }}
+            ingress:
+              enabled: false
+            service:
+              type: ClusterIP
             route:
-              group_by: ['...']
-              group_wait: 30s
-              group_interval: 5m
-              repeat_interval: 12h
-              receiver: 'null'
-              routes:
-                - receiver: 'null'
-                  matchers:
-                    - alertname = "Watchdog"
-                - receiver: 'telegram'
-                  matchers:
-                    - 'severity =~ warning|critical'
-            receivers:
-              - name: 'null'
-              - name: 'telegram'
-                telegram_configs:
-                  - send_resolved: true
-                    bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram/bot-token
-                    chat_id: 521324626
-                    parse_mode: HTML
-            templates:
-              - '/etc/alertmanager/config/*.tmpl'
-          templateFiles:
-            telegram.tmpl: |
-              {{ define "telegram.default.message" -}}
-              {{- $alert := index .Alerts 0 -}}
-              {{- if eq $alert.Status "firing" -}}🔴{{- else -}}🟢{{- end }} <b>{{ $alert.Labels.alertname }}</b>
-              {{ with $alert.Labels.severity -}}
-              <b>Severity:</b> {{ . }}
-              {{ end -}}
-              {{ with $alert.Annotations.summary -}}
-              <b>Summary:</b> {{ . }}
-              {{ end -}}
-              {{ with $alert.Annotations.description -}}
-              <b>Description:</b> {{ . }}
-              {{ end -}}
-              {{ with $alert.Labels.instance -}}
-              <b>Target:</b> {{ . }}
-              {{ end -}}
-              {{ with $alert.Labels.job -}}
-              <b>Job:</b> {{ . }}
-              {{ end -}}
-              {{ with $alert.StartsAt -}}
-              <b>Started:</b> {{ . }}
-              {{ end -}}
-              {{ if eq $alert.Status "resolved" -}}
-              <b>Ended:</b> {{ $alert.EndsAt }}
-              {{ end -}}
-              {{ with $alert.GeneratorURL -}}
-              <a href="{{ . }}">Prometheus</a>
-              {{ end -}}
-              {{ with $alert.Annotations.runbook_url -}}
-              <a href="{{ . }}">Runbook</a>
-              {{ end -}}
-              {{ end }}
-          ingress:
-            enabled: false
-          service:
-            type: ClusterIP
-          route:
-            main:
+              main:
+                enabled: true
+                annotations:
+                  item.homer.rajsingh.info/name: "Alertmanager"
+                  item.homer.rajsingh.info/subtitle: "Monitoring Alerts Management"
+                  item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/alertmanager.webp"
+                  service.homer.rajsingh.info/name: "Observability"
+                  service.homer.rajsingh.info/icon: "fas fa-eye"
+                parentRefs:
+                  - group: gateway.networking.k8s.io
+                    kind: Gateway
+                    name: traefik-gateway
+                    namespace: traefik
+                    sectionName: websecure
+                hostnames: [alertmanager.prosto.dev]
+                filters:
+                  - type: ExtensionRef
+                    extensionRef:
+                      group: traefik.io
+                      kind: Middleware
+                      name: alertmanager-auth
+          grafana:
+            deploymentStrategy:
+              type: RollingUpdate
+              rollingUpdate:
+                maxSurge: 0
+                maxUnavailable: 1
+            annotations:
+              secret.reloader.stakater.com/reload: grafana-dex
+              configmap.reloader.stakater.com/reload: kube-prometheus-stack-grafana-datasource
+            envFromSecrets:
+              - name: grafana-dex
+            env:
+              GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
+            sidecar:
+              dashboards:
+                skipReload: true
+                initDashboards: true
+                watchMethod: LIST
+              datasources:
+                skipReload: true
+                initDatasources: true
+                watchMethod: LIST
+            grafana.ini:
+              server:
+                root_url: https://grafana.prosto.dev
+              auth:
+                disable_login_form: true
+                oauth_auto_login: false
+              auth.basic:
+                enabled: false
+              auth.anonymous:
+                enabled: false
+              auth.generic_oauth:
+                enabled: true
+                name: Google
+                allow_sign_up: true
+                client_id: grafana
+                scopes: openid profile email offline_access
+                auth_url: https://dex.prosto.dev/auth
+                token_url: https://dex.prosto.dev/token
+                api_url: https://dex.prosto.dev/userinfo
+                use_pkce: true
+                use_refresh_token: true
+                validate_id_token: true
+                jwk_set_url: https://dex.prosto.dev/keys
+                role_attribute_path: "email_verified == `true` && email == 'legalaze94@gmail.com' && 'GrafanaAdmin'"
+                role_attribute_strict: true
+                allow_assign_grafana_admin: true
+                skip_org_role_sync: false
+            persistence:
               enabled: true
-              annotations:
-                item.homer.rajsingh.info/name: "Alertmanager"
-                item.homer.rajsingh.info/subtitle: "Monitoring Alerts Management"
-                item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/alertmanager.webp"
-                service.homer.rajsingh.info/name: "Observability"
-                service.homer.rajsingh.info/icon: "fas fa-eye"
-              parentRefs:
-                - group: gateway.networking.k8s.io
-                  kind: Gateway
-                  name: traefik-gateway
-                  namespace: traefik
-                  sectionName: websecure
-              hostnames: [alertmanager.prosto.dev]
-              filters:
-                - type: ExtensionRef
-                  extensionRef:
-                    group: traefik.io
-                    kind: Middleware
-                    name: alertmanager-auth
-        grafana:
-          deploymentStrategy:
-            type: RollingUpdate
-            rollingUpdate:
-              maxSurge: 0
-              maxUnavailable: 1
-          annotations:
-            secret.reloader.stakater.com/reload: grafana-dex
-            configmap.reloader.stakater.com/reload: kube-prometheus-stack-grafana-datasource
-          envFromSecrets:
-            - name: grafana-dex
-          env:
-            GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
-          sidecar:
+              size: 1Gi
+            ingress:
+              enabled: false
+            route:
+              main:
+                enabled: true
+                annotations:
+                  item.homer.rajsingh.info/name: "Grafana"
+                  item.homer.rajsingh.info/subtitle: "Monitoring Dashboards"
+                  item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/grafana.webp"
+                  service.homer.rajsingh.info/name: "Observability"
+                  service.homer.rajsingh.info/icon: "fas fa-eye"
+                parentRefs:
+                  - group: gateway.networking.k8s.io
+                    kind: Gateway
+                    name: traefik-gateway
+                    namespace: traefik
+                    sectionName: websecure
+                hostnames: [grafana.prosto.dev]
+            dashboardProviders:
+              dashboardproviders.yaml:
+                apiVersion: 1
+                providers:
+                  - name: default
+                    orgId: 1
+                    folder: ''
+                    type: file
+                    disableDeletion: false
+                    editable: true
+                    options:
+                      path: /var/lib/grafana/dashboards/default
             dashboards:
-              skipReload: true
-              initDashboards: true
-              watchMethod: LIST
-            datasources:
-              skipReload: true
-              initDatasources: true
-              watchMethod: LIST
-          grafana.ini:
-            server:
-              root_url: https://grafana.prosto.dev
-            auth:
-              disable_login_form: true
-              oauth_auto_login: false
-            auth.basic:
+              default:
+                longhorn:
+                  gnetId: 17626
+                  revision: 1
+                  datasource:
+                    - name: DS_PROMETHEUS-LONGHORN
+                      value: Prometheus
+          prometheus:
+            ingress:
               enabled: false
-            auth.anonymous:
-              enabled: false
-            auth.generic_oauth:
-              enabled: true
-              name: Google
-              allow_sign_up: true
-              client_id: grafana
-              scopes: openid profile email offline_access
-              auth_url: https://dex.prosto.dev/auth
-              token_url: https://dex.prosto.dev/token
-              api_url: https://dex.prosto.dev/userinfo
-              use_pkce: true
-              use_refresh_token: true
-              validate_id_token: true
-              jwk_set_url: https://dex.prosto.dev/keys
-              role_attribute_path: "email_verified == `true` && email == 'legalaze94@gmail.com' && 'GrafanaAdmin'"
-              role_attribute_strict: true
-              allow_assign_grafana_admin: true
-              skip_org_role_sync: false
-          persistence:
-            enabled: true
-            size: 1Gi
-          ingress:
-            enabled: false
-          route:
-            main:
-              enabled: true
-              annotations:
-                item.homer.rajsingh.info/name: "Grafana"
-                item.homer.rajsingh.info/subtitle: "Monitoring Dashboards"
-                item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/grafana.webp"
-                service.homer.rajsingh.info/name: "Observability"
-                service.homer.rajsingh.info/icon: "fas fa-eye"
-              parentRefs:
-                - group: gateway.networking.k8s.io
-                  kind: Gateway
-                  name: traefik-gateway
-                  namespace: traefik
-                  sectionName: websecure
-              hostnames: [grafana.prosto.dev]
-          dashboardProviders:
-            dashboardproviders.yaml:
-              apiVersion: 1
-              providers:
-                - name: default
-                  orgId: 1
-                  folder: ''
-                  type: file
-                  disableDeletion: false
-                  editable: true
-                  options:
-                    path: /var/lib/grafana/dashboards/default
-          dashboards:
-            default:
-              longhorn:
-                gnetId: 17626
-                revision: 1
-                datasource:
-                  - name: DS_PROMETHEUS-LONGHORN
-                    value: Prometheus
-        prometheus:
-          ingress:
-            enabled: false
-          service:
-            type: ClusterIP
-          route:
-            main:
-              enabled: true
-              annotations:
-                item.homer.rajsingh.info/name: "Prometheus"
-                item.homer.rajsingh.info/subtitle: "Metrics TSDB"
-                item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/prometheus.webp"
-                service.homer.rajsingh.info/name: "Observability"
-                service.homer.rajsingh.info/icon: "fas fa-eye"
-              # Keep API-defaulted reference fields explicit to prevent Argo CD drift.
-              parentRefs:
-                - group: gateway.networking.k8s.io
-                  kind: Gateway
-                  name: traefik-gateway
-                  namespace: traefik
-                  sectionName: websecure
-              hostnames: [prometheus.prosto.dev]
-              filters:
-                - type: ExtensionRef
-                  extensionRef:
-                    group: traefik.io
-                    kind: Middleware
-                    name: prometheus-auth
-          prometheusSpec:
-            externalUrl: https://prometheus.prosto.dev
-            podMonitorSelectorNilUsesHelmValues: false
-            ruleSelectorNilUsesHelmValues: false
-            serviceMonitorSelectorNilUsesHelmValues: false
-            probeSelectorNilUsesHelmValues: false
+            service:
+              type: ClusterIP
+            route:
+              main:
+                enabled: true
+                annotations:
+                  item.homer.rajsingh.info/name: "Prometheus"
+                  item.homer.rajsingh.info/subtitle: "Metrics TSDB"
+                  item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/prometheus.webp"
+                  service.homer.rajsingh.info/name: "Observability"
+                  service.homer.rajsingh.info/icon: "fas fa-eye"
+                # Keep API-defaulted reference fields explicit to prevent Argo CD drift.
+                parentRefs:
+                  - group: gateway.networking.k8s.io
+                    kind: Gateway
+                    name: traefik-gateway
+                    namespace: traefik
+                    sectionName: websecure
+                hostnames: [prometheus.prosto.dev]
+                filters:
+                  - type: ExtensionRef
+                    extensionRef:
+                      group: traefik.io
+                      kind: Middleware
+                      name: prometheus-auth
+            prometheusSpec:
+              externalUrl: https://prometheus.prosto.dev
+              podMonitorSelectorNilUsesHelmValues: false
+              ruleSelectorNilUsesHelmValues: false
+              serviceMonitorSelectorNilUsesHelmValues: false
+              probeSelectorNilUsesHelmValues: false
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/kube-prometheus-stack
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
