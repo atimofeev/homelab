@@ -10,16 +10,21 @@ metadata:
 
 spec:
   project: default
-  source:
-    repoURL: https://stakater.github.io/stakater-charts
-    chart: reloader
-    targetRevision: 2.2.18
-    helm:
-      releaseName: reloader
-      valuesObject:
-        reloader:
-          reloadOnCreate: true
-          syncAfterRestart: true
+  sources:
+    - repoURL: https://stakater.github.io/stakater-charts
+      chart: reloader
+      targetRevision: 2.2.18
+      helm:
+        releaseName: reloader
+        valuesObject:
+          reloader:
+            reloadOnCreate: true
+            syncAfterRestart: true
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/reloader
+      directory:
+        exclude: main.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: reloader
