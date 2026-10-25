@@ -1,0 +1,14 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+
+metadata:
+  name: longhorn-auth
+  namespace: longhorn-system
+
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy.monitoring.svc.cluster.local/
+    trustForwardHeader: false
+    addAuthCookiesToResponse:
+      - __Host-prometheus_auth
