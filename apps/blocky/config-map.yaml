@@ -26,6 +26,8 @@ data:
     ports:
       dns: 53
       http: 4000
+    statistics:
+      enable: true
     prometheus:
       enable: true
       path: /metrics
