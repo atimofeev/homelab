@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: homer
+resources:
+  - dashboard.yaml
+  - http-route.yaml
+
+configMapGenerator:
+  - name: main-homer-assets
+    files:
+      - assets/favicon.ico
+      - assets/apple-touch-icon.png
+      - assets/wallpaper.webp
+      - assets/wallpaper-light.webp
+
+generatorOptions:
+  # Dashboard's custom asset reference is not a built-in Kustomize name reference.
+  disableNameSuffixHash: true
