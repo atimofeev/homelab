@@ -102,6 +102,10 @@ data "talos_machine_configuration" "this" {
         }
       }
       }), yamlencode({
+      apiVersion                 = "v1alpha1"
+      kind                       = "KubeFlannelCNIConfig"
+      kubeNetworkPoliciesEnabled = true
+      }), yamlencode({
       apiVersion    = "v1alpha1"
       kind          = "KubeAPIServerConfig"
       certExtraSANs = distinct(concat([var.talos_api_vip], local.node_ips))
