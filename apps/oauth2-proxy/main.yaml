@@ -76,6 +76,7 @@ spec:
             - alertmanager.prosto.dev
             - longhorn.prosto.dev
           annotations:
+            item.homer.rajsingh.info/hide: "true"
             item.homer.rajsingh.info/name: "Admin Sign-In"
             item.homer.rajsingh.info/subtitle: "Google Login for Protected UIs"
             item.homer.rajsingh.info/logo: "https://dexidp.io/img/logos/dex-glyph-color.svg"
