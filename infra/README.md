@@ -84,6 +84,89 @@ field manager, and verify removal of the sidecar and traffic recovery. This
 restores connectivity by disabling policy isolation; it is not a security-safe
 steady state. Do not disable or replace Flannel itself.
 
+## Public Workload OIDC Metadata
+
+`oidc.tf` publishes Kubernetes service-account discovery and public signing keys
+at `https://oidc.${var.domain}`. A Cloudflare Worker serves embedded JSON; its
+custom domain manages DNS and TLS. It has no origin, tunnel, cluster credentials,
+or runtime connection to the homelab. Do not add a DNS record pointing this
+hostname at the homelab, or protect these two paths with Cloudflare Access or a
+browser challenge:
+
+- `/.well-known/openid-configuration`
+- `/openid/v1/jwks`
+
+OpenTofu reads both documents from the private Kubernetes API using the existing
+kubeconfig resource's CA and client certificate/key, then replaces discovery's
+issuer and JWKS URL with the public URLs. Run plans/applies from a machine with
+private API connectivity. Cloudflare credentials need Workers Scripts Edit and
+Workers Routes Edit permissions in addition to the existing zone permissions.
+Client credentials remain in state; the Worker receives only public metadata.
+
+### Workers Billing
+
+Workers Free includes 100,000 requests per day across the Cloudflare account
+and 10 ms CPU per request. This Worker serves small embedded JSON documents;
+it needs no KV, R2, Durable Objects, or paid subscription. These are Worker
+handler requests, not the separate unlimited Workers Static Assets offering.
+Exhausting the Free quota returns errors rather than paid request overage.
+
+Workers Paid is a separate, opt-in account subscription starting at $5/month,
+including 10 million requests and 30 million CPU-ms/month. Excess usage is
+metered. This configuration does not create or upgrade a subscription. See
+[Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)
+and [request limits](https://developers.cloudflare.com/workers/platform/limits/).
+
+### Deployment
+
+One normal plan/apply, using native providers only:
+
+```sh
+tofu plan -out=oidc.tfplan
+tofu apply oidc.tfplan
+```
+
+The managed Talos configuration issues tokens with the public issuer and accepts
+both that issuer and the existing Kubernetes API endpoint issuer/audience. It
+preserves the signing key. `accepted.issuers` lists only the legacy issuer:
+Talos adds the issuing URL automatically, and listing it again prevents the API
+server from starting. Metadata reads depend on machine configuration and cluster
+health; the Worker depends on those reads, followed by its custom domain.
+There are no scripts, provisioners, migration resources, or phase flags.
+
+During the first issuer transition, a control plane not yet updated can reject
+new-issuer tokens from an updated control plane. This one-apply configuration
+accepts that transient authentication risk; `depends_on` does not guarantee a
+zero-disruption rolling issuer migration or wait for every API-server restart.
+Verify all control planes advertise the public issuer after convergence and
+both public URLs return matching public keys. TLS certificate activation at
+Cloudflare can take time.
+
+The compatibility issuer is `https://${var.talos_api_vip}:6443`, verified on all
+three current control planes. For rollback, restore that value as the issuing
+URL in the Talos patch while retaining both accepted issuers/audiences. Keep the
+Worker while existing public-issuer tokens remain valid.
+
+Normal upgrades and pod-token renewal preserve the signing key. Intentional key
+rotation needs separate planning to publish new keys before using them and retain
+old keys through token expiry/cache lifetimes.
+
+AWS IAM providers/roles, S3 buckets, and CNPG backups remain separate. AWS pods
+will need projected tokens with audience `sts.amazonaws.com`; that audience is
+not added to Kubernetes API audiences.
+
+### Offline Checks
+
+```sh
+tofu fmt -check -recursive
+tofu validate
+tofu test -filter=tests/oidc.tftest.hcl
+node --test tests/oidc-worker.test.mjs
+```
+
+The OpenTofu tests use mocked providers in plan mode. Worker tests use only
+fixture metadata; neither test suite contacts or changes live infrastructure.
+
 ## Inspiration
 
 - https://github.com/hcloud-k8s/terraform-hcloud-kubernetes/
