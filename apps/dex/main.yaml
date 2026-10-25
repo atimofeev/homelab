@@ -84,10 +84,12 @@ spec:
               redirectURIs:
                 - https://paperless.prosto.dev/accounts/oidc/dex/login/callback/
             - id: oauth2-proxy
-              name: Prometheus
+              name: Homelab Admin UIs
               secretEnv: OAUTH2_PROXY_CLIENT_SECRET
               redirectURIs:
                 - https://prometheus.prosto.dev/oauth2/callback
+                - https://alertmanager.prosto.dev/oauth2/callback
+                - https://longhorn.prosto.dev/oauth2/callback
         httpRoute:
           enabled: true
           annotations:
