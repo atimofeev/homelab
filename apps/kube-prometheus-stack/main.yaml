@@ -19,6 +19,7 @@ spec:
       valuesObject:
         alertmanager:
           alertmanagerSpec:
+            externalUrl: https://alertmanager.prosto.dev
             secrets:
               - alertmanager-telegram
           config:
@@ -104,15 +105,31 @@ spec:
               {{ end -}}
               {{ end }}
           ingress:
-            enabled: true
-            ingressClassName: nginx
-            hosts: [alertmanager.prosto.dev]
-            annotations:
-              item.homer.rajsingh.info/name: "Alertmanager"
-              item.homer.rajsingh.info/subtitle: "Monitoring Alerts Management"
-              item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/alertmanager.webp"
-              service.homer.rajsingh.info/name: "Observability"
-              service.homer.rajsingh.info/icon: "fas fa-eye"
+            enabled: false
+          service:
+            type: ClusterIP
+          route:
+            main:
+              enabled: true
+              annotations:
+                item.homer.rajsingh.info/name: "Alertmanager"
+                item.homer.rajsingh.info/subtitle: "Monitoring Alerts Management"
+                item.homer.rajsingh.info/logo: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/alertmanager.webp"
+                service.homer.rajsingh.info/name: "Observability"
+                service.homer.rajsingh.info/icon: "fas fa-eye"
+              parentRefs:
+                - group: gateway.networking.k8s.io
+                  kind: Gateway
+                  name: traefik-gateway
+                  namespace: traefik
+                  sectionName: websecure
+              hostnames: [alertmanager.prosto.dev]
+              filters:
+                - type: ExtensionRef
+                  extensionRef:
+                    group: traefik.io
+                    kind: Middleware
+                    name: alertmanager-auth
         grafana:
           deploymentStrategy:
             type: RollingUpdate
