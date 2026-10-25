@@ -7,7 +7,9 @@ the Dashboard's custom asset reference is not a built-in Kustomize name referenc
 The operator stages these files into the shared assets volume and aliases the
 icons to the browser's expected paths. Light and dark background image paths
 are set through the native Homer color configuration; the existing theme and
-layout are unchanged.
+layout are unchanged. Use origin-absolute `/assets/...` background paths: relative
+URLs in CSS custom properties resolve against the consuming stylesheet under
+`/resources/`, not the page URL.
 
 ## Why Explicit Assets
 
