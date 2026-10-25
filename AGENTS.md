@@ -42,6 +42,14 @@ This project manages a Kubernetes-based homelab environment using a declarative 
 - Include all five keys: `item.homer.rajsingh.info/name`, `item.homer.rajsingh.info/subtitle`, `item.homer.rajsingh.info/logo`, `service.homer.rajsingh.info/name`, and `service.homer.rajsingh.info/icon`.
 - Follow existing categories and icons. See `apps/atuin/http-route.yaml` and `apps/dex/main.yaml` for examples.
 
+### Network Policies
+
+- Protect backend pods, not just public routes: Traefik OAuth does not protect direct pod/ClusterIP access. Keep public applications public through Traefik while restricting their internal reachability.
+- Keep workload policies alongside their owning app and include them in its ArgoCD directory/Kustomize sources. ArgoCD bootstrap policies live in root `argocd-network-policies.yaml`, loaded by `argocd.tf`.
+- Do not hardcode node IPs or subnets for API-server traffic. Allow required admission/aggregation ports from any source; restrict separate metrics ports to selected Prometheus pods. Shared API/metrics listeners cannot be separated with L3/L4 rules.
+- Policies are additive: inspect rendered Helm policies alongside handwritten policies. Preserve monitoring, OIDC, replication, bootstrap/recovery jobs, admission, and health probes; do not introduce blanket system-namespace denies or guessed egress allowlists.
+- Read [network policy boundaries and rollout checks](.agents/references/network-policies.md) before changing policies. Keep detailed agent-facing notes under `.agents/references/`, not new root `docs/`, `tests/`, or `templates/` directories.
+
 ## Workflows
 
 ### Infrastructure Updates
