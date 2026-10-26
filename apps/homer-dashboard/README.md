@@ -20,6 +20,28 @@ Homer starts, bundled icons and wallpapers are skipped. The dashboard can then
 load normally while those asset requests return HTTP 404. Explicit asset staging
 works with either startup order and does not rely on external image URLs.
 
+## Config-Sync CPU Quota
+
+Operator 1.2.4 hardcodes a 50m CPU limit for `config-sync` and recopies assets
+on a five-second loop. Short copy bursts exhaust that quota despite low average
+CPU use, firing `CPUThrottlingHigh`. The operator exposes no sidecar resource
+setting; `Dashboard.spec.resources` changes only the main Homer container.
+
+`apps/homer-operator/config-sync-cpu-policy.yaml` uses Kubernetes native
+`MutatingAdmissionPolicy` to remove only the sidecar CPU limit from newly created
+Pods for Dashboard `main` in namespace `homer`. CPU requests, memory limits,
+other containers, and the operator-owned Deployment remain unchanged. The policy
+is fail-open and idempotent; it needs no webhook deployment. It requires the
+`admissionregistration.k8s.io/v1` policy API served by this cluster.
+
+After the operator Application syncs the policy and binding, an approved rolling
+restart of `deployment/main-homer` is needed for existing Pods to pick it up.
+Verify the new Pod retains the `config-sync` memory limit but has no CPU limit,
+asset URLs still return HTTP 200, and the throttling alert clears after its
+five-minute query window. Removing the policy affects future Pods only; restoring
+the original quota also requires recreating existing Pods. Remove this workaround
+when upstream provides suitable sidecar resource configuration or fixes the loop.
+
 ## Asset Provenance
 
 Unmodified files copied from Homer 26.08.3, using the same image digest observed

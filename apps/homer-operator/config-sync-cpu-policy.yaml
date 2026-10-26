@@ -1,0 +1,44 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: homer-config-sync-cpu
+spec:
+  failurePolicy: Ignore
+  reinvocationPolicy: IfNeeded
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: homer
+    objectSelector:
+      matchLabels:
+        dashboard.homer.rajsingh.info/name: main
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [pods]
+  matchConditions:
+    - name: config-sync-has-cpu-limit
+      expression: >-
+        object.spec.containers.exists(c,
+          c.name == 'config-sync' && has(c.resources) &&
+          has(c.resources.limits) && 'cpu' in c.resources.limits)
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        # Mutate new Pods, not the operator-owned Deployment; retain memory limits.
+        expression: >-
+          [JSONPatch{
+            op: 'remove',
+            path: '/spec/containers/' +
+              string(object.spec.containers.map(c, c.name).indexOf('config-sync')) +
+              '/resources/limits/cpu'
+          }]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: homer-config-sync-cpu
+spec:
+  policyName: homer-config-sync-cpu
