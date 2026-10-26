@@ -17,6 +17,9 @@ spec:
       helm:
         releaseName: kube-prometheus-stack
         valuesObject:
+          prometheusOperator:
+            kubeletEndpointsEnabled: false
+            kubeletEndpointSliceEnabled: true
           alertmanager:
             alertmanagerSpec:
               externalUrl: https://alertmanager.prosto.dev
@@ -250,6 +253,7 @@ spec:
                       name: prometheus-auth
             prometheusSpec:
               externalUrl: https://prometheus.prosto.dev
+              serviceDiscoveryRole: EndpointSlice
               podMonitorSelectorNilUsesHelmValues: false
               ruleSelectorNilUsesHelmValues: false
               serviceMonitorSelectorNilUsesHelmValues: false
