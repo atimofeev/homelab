@@ -40,7 +40,7 @@ separately reviewed root OpenTofu plan/apply, not only application GitOps sync.
 | kube-state-metrics | Prometheus on 8080/8081 | Unchanged; Kubernetes API |
 | cert-manager / ESO / CNPG operator | Separate metrics from Prometheus; admission port from any source | Unchanged; reconciliation/provider APIs |
 | Prometheus operator / metrics-server | Shared API/metrics HTTPS port 10250 from any source | Unchanged; Kubernetes API |
-| external-dns | Prometheus on 7979; MikroTik webhook stays pod-local | Unchanged; MikroTik and Kubernetes APIs |
+| external-dns | Prometheus on 7979/8080; provider calls stay pod-local | Unchanged; MikroTik and Kubernetes APIs |
 | reloader / Homer operator | Prometheus on 9090 / 8443 | Unchanged; Kubernetes API |
 | Homer dashboard | Traefik on 8080 | Unchanged; config-sync sidecar uses Kubernetes API |
 | Traefik | Public HTTP/HTTPS on 8000/8443; Prometheus on 9100 | Unchanged; backends and Kubernetes API |
