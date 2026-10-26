@@ -46,22 +46,22 @@ run "public_issuer_and_private_metadata_reads" {
   command = plan
 
   assert {
-    condition     = yamldecode(data.talos_machine_configuration.this["02:00:00:00:00:11"].config_patches[2]).issuer.issuerURL == "https://oidc.example.com"
+    condition     = yamldecode(data.talos_machine_configuration.this["02:00:00:00:00:11"].config_patches[3]).issuer.issuerURL == "https://oidc.example.com"
     error_message = "One apply must converge directly to the public issuer."
   }
 
   assert {
-    condition     = !can(yamldecode(data.talos_machine_configuration.this["02:00:00:00:00:11"].config_patches[2]).issuer.privateKey)
+    condition     = !can(yamldecode(data.talos_machine_configuration.this["02:00:00:00:00:11"].config_patches[3]).issuer.privateKey)
     error_message = "OIDC patches must not replace the generated signing key."
   }
 
   assert {
-    condition     = yamldecode(data.talos_machine_configuration.this["02:00:00:00:00:11"].config_patches[2]).accepted.issuers == ["https://192.0.2.10:6443"]
+    condition     = yamldecode(data.talos_machine_configuration.this["02:00:00:00:00:11"].config_patches[3]).accepted.issuers == ["https://192.0.2.10:6443"]
     error_message = "Only the legacy issuer belongs in accepted.issuers; Talos adds the issuing URL automatically and duplicates crash kube-apiserver."
   }
 
   assert {
-    condition     = toset(yamldecode(data.talos_machine_configuration.this["02:00:00:00:00:11"].config_patches[2]).accepted.audiences) == toset(["https://192.0.2.10:6443", "https://oidc.example.com"])
+    condition     = toset(yamldecode(data.talos_machine_configuration.this["02:00:00:00:00:11"].config_patches[3]).accepted.audiences) == toset(["https://192.0.2.10:6443", "https://oidc.example.com"])
     error_message = "Both old and new API audiences must remain accepted."
   }
 
