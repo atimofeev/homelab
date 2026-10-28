@@ -1,0 +1,12 @@
+extends: relaxed
+
+ignore: |
+  .git/
+  .jj/
+  **/.terraform/
+  apps/**/templates/**
+
+rules:
+  line-length: disable
+  truthy:
+    check-keys: false

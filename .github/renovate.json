@@ -56,7 +56,8 @@
       "matchFileNames": ["apps/**"],
       "matchUpdateTypes": ["patch"],
       "automerge": true,
-      "automergeType": "pr"
+      "automergeType": "pr",
+      "platformAutomerge": false
     }
   ],
   "customManagers": [
