@@ -20,4 +20,3 @@ spec:
     - name: http-metrics
       port: 9001
       targetPort: 9001
-

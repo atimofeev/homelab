@@ -70,4 +70,3 @@ spec:
         - name: atuin-config
           configMap:
             name: atuin-config
-
