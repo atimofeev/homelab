@@ -1,0 +1,78 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  yamllint:
+    # Hosted runner supplies Docker only; validation tools come from images.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Lint YAML
+        uses: docker://quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+        with:
+          args: yamllint .
+
+  kubeconform:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Test rendering helper
+        uses: docker://quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+        with:
+          args: python3 -B -m unittest discover -s .github/scripts -p test_*.py
+      - name: Render manifests and chart CRD schemas
+        id: render
+        uses: docker://quay.io/helmpack/chart-testing:v3.15.0@sha256:54317f2d93730ea9ca1236e3d79cd95d74110b8d733b6ab124e5829209b5f4e4
+        with:
+          args: python3 .github/scripts/render-kubernetes.py .validation
+      - name: Validate manifests and rendered charts
+        uses: docker://ghcr.io/yannh/kubeconform:v0.8.0@sha256:faffaf43f95aa6425306e1ab8d6fcad72acb9049158f38e574c085ea1ec0f64e
+        with:
+          args: >-
+            -strict -summary
+            -kubernetes-version ${{ steps.render.outputs.kubernetes_version }}
+            -schema-location .validation/schemas/{{.Group}}-{{.ResourceKind}}-{{.ResourceAPIVersion}}.json
+            -schema-location default
+            -schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
+            .validation/manifests
+
+  tofu:
+    name: tofu (${{ matrix.directory }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: [., infra]
+    env:
+      TF_IN_AUTOMATION: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Initialize provider schemas without accessing state
+        uses: docker://ghcr.io/opentofu/opentofu:1.12.6@sha256:22cb52f6c5bf5c72a48a8f56d993d8df3e9462b1cdfb5db7e77143c87e8d159f
+        with:
+          args: -chdir=${{ matrix.directory }} init -backend=false -input=false -no-color
+      - name: Validate OpenTofu
+        uses: docker://ghcr.io/opentofu/opentofu:1.12.6@sha256:22cb52f6c5bf5c72a48a8f56d993d8df3e9462b1cdfb5db7e77143c87e8d159f
+        with:
+          args: -chdir=${{ matrix.directory }} validate -no-color
