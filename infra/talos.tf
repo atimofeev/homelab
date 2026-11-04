@@ -91,6 +91,12 @@ data "talos_machine_configuration" "this" {
   talos_version      = var.talos_version
   config_patches = concat(
     [for patch in var.talos_config_patches : yamlencode(patch)],
+    [yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "HostnameConfig"
+      auto       = "off"
+      hostname   = each.value.hostname
+    })],
     each.value.type == "controlplane" ? [yamlencode({
       machine = {
         network = {

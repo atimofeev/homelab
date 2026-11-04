@@ -23,12 +23,13 @@ variable "kubernetes_version" {
 
 variable "nodes" {
   type = list(object({
-    ip   = string
-    mac  = string
-    disk = string
-    type = string
+    hostname = string
+    ip       = string
+    mac      = string
+    disk     = string
+    type     = string
   }))
-  description = "A list of baremetal nodes with their IP and MAC addresses."
+  description = "A list of baremetal nodes with their IP and MAC addresses. hostname pins the Kubernetes node identity across reinstalls."
 }
 
 variable "talos_api_vip" {

@@ -43,15 +43,17 @@ nodes = [
     type = "controlplane"
   },
   {
-    ip   = "192.168.88.254"
-    mac  = "10:E7:C6:11:C0:82"
-    disk = "/dev/sda"
-    type = "controlplane"
+    hostname = "talos-nof-ec2"
+    ip       = "192.168.88.254"
+    mac      = "10:E7:C6:11:C0:82"
+    disk     = "/dev/sda"
+    type     = "controlplane"
   },
   {
-    ip   = "192.168.88.253"
-    mac  = "F4:39:09:2B:B5:24"
-    disk = "/dev/sda"
-    type = "controlplane"
+    hostname = "talos-p4l-d9d"
+    ip       = "192.168.88.253"
+    mac      = "F4:39:09:2B:B5:24"
+    disk     = "/dev/sda"
+    type     = "controlplane"
   },
 ]
