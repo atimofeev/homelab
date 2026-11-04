@@ -12,26 +12,26 @@ spec:
   groups:
     - name: cert-manager
       rules:
-        - alert: CertManagerCertificateExpiringSoon
+        - alert: CertManagerCertificateRenewalOverdue
           expr: |
-            certmanager_certificate_expiration_timestamp_seconds - time() < 86400 * 14
+            certmanager_certificate_renewal_timestamp_seconds < time()
             and
-            certmanager_certificate_expiration_timestamp_seconds - time() > 0
+            certmanager_certificate_expiration_timestamp_seconds > time()
           for: 1h
           labels:
             severity: warning
           annotations:
-            summary: "Certificate {{ $labels.name }}/{{ $labels.namespace }} expires in less than 14 days"
+            summary: "Certificate {{ $labels.exported_namespace }}/{{ $labels.name }} renewal is overdue"
         - alert: CertManagerCertificateExpiringCritical
           expr: |
-            certmanager_certificate_expiration_timestamp_seconds - time() < 86400 * 3
+            certmanager_certificate_expiration_timestamp_seconds - time() < 43200
             and
             certmanager_certificate_expiration_timestamp_seconds - time() > 0
-          for: 1h
+          for: 15m
           labels:
             severity: critical
           annotations:
-            summary: "Certificate {{ $labels.name }}/{{ $labels.namespace }} expires in less than 3 days"
+            summary: "Certificate {{ $labels.exported_namespace }}/{{ $labels.name }} expires in less than 12 hours"
         - alert: CertManagerCertificateExpired
           expr: |
             certmanager_certificate_expiration_timestamp_seconds - time() < 0
@@ -39,4 +39,12 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "Certificate {{ $labels.name }}/{{ $labels.namespace }} has expired"
+            summary: "Certificate {{ $labels.exported_namespace }}/{{ $labels.name }} has expired"
+        - alert: CertManagerCertificateNotReady
+          expr: |
+            certmanager_certificate_ready_status{condition="True"} == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Certificate {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready"
