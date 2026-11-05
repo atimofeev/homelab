@@ -54,7 +54,7 @@ nodes = [
     hostname = "talos-p4l-d9d"
     ip       = "192.168.88.253"
     mac      = "F4:39:09:2B:B5:24"
-    disk     = "/dev/sda"
+    disk     = "/dev/nvme0n1"
     type     = "controlplane"
   },
 ]
