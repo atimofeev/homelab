@@ -69,10 +69,10 @@ jobs:
         with:
           persist-credentials: false
       - name: Initialize provider schemas without accessing state
-        uses: docker://ghcr.io/opentofu/opentofu:1.13.8@sha256:94fa7a782d08069278e4a1bab055cf94b95e870d1728bf5b43b00a7795bba6d0
+        uses: docker://ghcr.io/opentofu/opentofu:1.13.9@sha256:f5aef7f2632b490e3c289a239d7974497d0583f3df6bfa35e8eb31a367ee5ec0
         with:
           args: -chdir=${{ matrix.directory }} init -backend=false -input=false -no-color
       - name: Validate OpenTofu
-        uses: docker://ghcr.io/opentofu/opentofu:1.13.8@sha256:94fa7a782d08069278e4a1bab055cf94b95e870d1728bf5b43b00a7795bba6d0
+        uses: docker://ghcr.io/opentofu/opentofu:1.13.9@sha256:f5aef7f2632b490e3c289a239d7974497d0583f3df6bfa35e8eb31a367ee5ec0
         with:
           args: -chdir=${{ matrix.directory }} validate -no-color
