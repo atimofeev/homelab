@@ -17,6 +17,12 @@ spec:
       helm:
         releaseName: cnpg-operator
         valuesObject:
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
           monitoring:
             podMonitorEnabled: true
             grafanaDashboard:

@@ -1,0 +1,104 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: longhorn-generated-resources
+  annotations:
+    argocd.argoproj.io/sync-wave: "-30"
+spec:
+  failurePolicy: Ignore
+  reinvocationPolicy: IfNeeded
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: longhorn-system
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [pods]
+  matchConditions:
+    - name: unsupported-resource-controls
+      expression: >-
+        has(object.metadata.labels) && (
+          ('app' in object.metadata.labels && object.metadata.labels['app'] in
+            ['longhorn-manager', 'longhorn-driver-deployer', 'longhorn-ui']) ||
+          ('longhorn.io/component' in object.metadata.labels &&
+            (object.metadata.labels['longhorn.io/component'] == 'engine-image' ||
+              (object.metadata.labels['longhorn.io/component'] == 'instance-manager' &&
+                'longhorn.io/data-engine' in object.metadata.labels &&
+                object.metadata.labels['longhorn.io/data-engine'] == 'v1'))) ||
+          ('recurring-job.longhorn.io' in object.metadata.labels &&
+            object.metadata.labels['recurring-job.longhorn.io'] == 'filesystem-trim') ||
+          ('app.kubernetes.io/name' in object.metadata.labels &&
+            object.metadata.labels['app.kubernetes.io/name'] == 'longhorn' &&
+            object.spec.containers.exists(c, c.name in
+              ['longhorn-pre-upgrade', 'longhorn-post-upgrade', 'longhorn-uninstall'])))
+  variables:
+    - name: profiles
+      expression: >-
+        {
+          'pre-pull-share-manager-image': {'cpu': '5m', 'memory': '4Mi', 'limit': '32Mi'},
+          'longhorn-driver-deployer': {'cpu': '10m', 'memory': '32Mi', 'limit': '128Mi'},
+          'wait-longhorn-manager': {'cpu': '5m', 'memory': '16Mi', 'limit': '64Mi'},
+          'longhorn-ui': {'cpu': '5m', 'memory': '16Mi', 'limit': '128Mi'},
+          'engine-image': {'cpu': '25m', 'memory': '16Mi', 'limit': '128Mi'},
+          'instance-manager': {'cpu': '100m', 'memory': '512Mi', 'limit': '2Gi'},
+          'filesystem-trim': {'cpu': '10m', 'memory': '64Mi', 'limit': '256Mi'},
+          'longhorn-pre-upgrade': {'cpu': '50m', 'memory': '64Mi', 'limit': '512Mi'},
+          'longhorn-post-upgrade': {'cpu': '50m', 'memory': '64Mi', 'limit': '512Mi'},
+          'longhorn-uninstall': {'cpu': '50m', 'memory': '64Mi', 'limit': '512Mi'}
+        }
+  mutations:
+    # Keep controller-owned templates intact and preserve computed instance-manager CPU requests.
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            spec: Object.spec{
+              containers: object.spec.containers.filter(c,
+                c.name in variables.profiles || c.name.startsWith('engine-image-')).map(c,
+                  Object.spec.containers{
+                    name: c.name,
+                    resources: Object.spec.containers.resources{
+                      requests: {
+                        'cpu': has(c.resources) && has(c.resources.requests) && 'cpu' in c.resources.requests ?
+                          string(c.resources.requests['cpu']) : variables.profiles[c.name.startsWith('engine-image-') ? 'engine-image' : c.name]['cpu'],
+                        'memory': variables.profiles[c.name.startsWith('engine-image-') ? 'engine-image' : c.name]['memory']
+                      },
+                      limits: {'memory': variables.profiles[c.name.startsWith('engine-image-') ? 'engine-image' : c.name]['limit']}
+                    }
+                  }),
+              initContainers: has(object.spec.initContainers) ?
+                object.spec.initContainers.filter(c, c.name in variables.profiles).map(c,
+                  Object.spec.initContainers{
+                    name: c.name,
+                    resources: Object.spec.initContainers.resources{
+                      requests: {'cpu': variables.profiles[c.name]['cpu'], 'memory': variables.profiles[c.name]['memory']},
+                      limits: {'memory': variables.profiles[c.name]['limit']}
+                    }
+                  }) : []
+            }
+          }
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          object.spec.containers.filter(c,
+            (c.name in variables.profiles || c.name.startsWith('engine-image-')) &&
+            has(c.resources) && has(c.resources.limits) && 'cpu' in c.resources.limits).map(c,
+              JSONPatch{op: 'remove', path: '/spec/containers/' +
+                string(object.spec.containers.map(c, c.name).indexOf(c.name)) + '/resources/limits/cpu'}) +
+          (has(object.spec.initContainers) ? object.spec.initContainers.filter(c,
+            c.name in variables.profiles && has(c.resources) &&
+            has(c.resources.limits) && 'cpu' in c.resources.limits).map(c,
+              JSONPatch{op: 'remove', path: '/spec/initContainers/' +
+                string(object.spec.initContainers.map(c, c.name).indexOf(c.name)) + '/resources/limits/cpu'}) : [])
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: longhorn-generated-resources
+  annotations:
+    argocd.argoproj.io/sync-wave: "-30"
+spec:
+  policyName: longhorn-generated-resources

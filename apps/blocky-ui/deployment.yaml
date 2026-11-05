@@ -20,6 +20,12 @@ spec:
     spec:
       containers:
         - name: blocky-ui
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
           image: ghcr.io/gabeduartem/blocky-ui:2.2.0
           securityContext:
             runAsUser: 1001

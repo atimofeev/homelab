@@ -18,6 +18,27 @@ spec:
       releaseName: ingress-nginx
       valuesObject:
         controller:
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          admissionWebhooks:
+            createSecretJob:
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
+            patchWebhookJob:
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
           config:
             ssl-redirect: true
           ingressClassResource:

@@ -17,8 +17,34 @@ spec:
       helm:
         releaseName: external-secrets
         valuesObject:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          webhook:
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+          certController:
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
           bitwarden-sdk-server:
             enabled: true
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
             podAnnotations:
               reloader.stakater.com/auto: "true"
           leaderElect: true

@@ -18,10 +18,51 @@ spec:
         releaseName: kube-prometheus-stack
         valuesObject:
           prometheusOperator:
+            resources:
+              requests:
+                cpu: 25m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+            prometheusConfigReloader:
+              resources:
+                requests:
+                  cpu: 5m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
+            admissionWebhooks:
+              patch:
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 32Mi
+                  limits:
+                    memory: 128Mi
             kubeletEndpointsEnabled: false
             kubeletEndpointSliceEnabled: true
+          kube-state-metrics:
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
+          prometheus-node-exporter:
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
           alertmanager:
             alertmanagerSpec:
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
               externalUrl: https://alertmanager.prosto.dev
               secrets:
                 - alertmanager-telegram
@@ -134,6 +175,33 @@ spec:
                       kind: Middleware
                       name: alertmanager-auth
           grafana:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+            initChownData:
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
+            downloadDashboards:
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+            testFramework:
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
             deploymentStrategy:
               type: RollingUpdate
               rollingUpdate:
@@ -147,6 +215,12 @@ spec:
             env:
               GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
             sidecar:
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
               dashboards:
                 skipReload: true
                 initDashboards: true
@@ -252,6 +326,12 @@ spec:
                       kind: Middleware
                       name: prometheus-auth
             prometheusSpec:
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 1Gi
+                limits:
+                  memory: 4Gi
               externalUrl: https://prometheus.prosto.dev
               serviceDiscoveryRole: EndpointSlice
               podMonitorSelectorNilUsesHelmValues: false

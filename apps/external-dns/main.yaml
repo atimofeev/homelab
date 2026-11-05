@@ -17,6 +17,12 @@ spec:
       helm:
         releaseName: external-dns
         valuesObject:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
           fullnameOverride: external-dns-mikrotik
           logLevel: debug
           logFormat: text
@@ -31,6 +37,12 @@ spec:
           provider:
             name: webhook
             webhook:
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
               image:
                 repository: ghcr.io/mirceanton/external-dns-provider-mikrotik
                 tag: v1.6.3

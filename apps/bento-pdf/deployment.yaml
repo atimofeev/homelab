@@ -23,6 +23,12 @@ spec:
         fsGroup: 101
       containers:
         - name: bento-pdf
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              memory: 128Mi
           image: ghcr.io/alam00000/bentopdf-simple:sha-90998ed
           securityContext:
             runAsUser: 101

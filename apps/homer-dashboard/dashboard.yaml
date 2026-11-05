@@ -8,6 +8,12 @@ metadata:
 
 spec:
   replicas: 1
+  resources:
+    requests:
+      cpu: 5m
+      memory: 16Mi
+    limits:
+      memory: 128Mi
   assets:
     configMapRef:
       name: main-homer-assets

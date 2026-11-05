@@ -17,6 +17,12 @@ spec:
       helm:
         releaseName: metrics-server
         valuesObject:
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
           # FIX: for self-signed certs
           args: ["--kubelet-insecure-tls=true", "--kubelet-preferred-address-types=InternalIP"]
           metrics:

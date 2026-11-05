@@ -97,10 +97,39 @@ data "talos_machine_configuration" "this" {
       apiVersion                 = "v1alpha1"
       kind                       = "KubeFlannelCNIConfig"
       kubeNetworkPoliciesEnabled = true
+      resources = {
+        requests = { cpu = "100m", memory = "50Mi" }
+        limits   = { memory = "256Mi" }
+      }
       }), yamlencode({
       apiVersion    = "v1alpha1"
       kind          = "KubeAPIServerConfig"
       certExtraSANs = distinct(concat([var.talos_api_vip], local.node_ips))
+      resources = {
+        requests = { cpu = "200m", memory = "1Gi" }
+        limits   = { memory = "4Gi" }
+      }
+      }), yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeControllerManagerConfig"
+      resources = {
+        requests = { cpu = "50m", memory = "256Mi" }
+        limits   = { memory = "1Gi" }
+      }
+      }), yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeSchedulerConfig"
+      resources = {
+        requests = { cpu = "10m", memory = "64Mi" }
+        limits   = { memory = "256Mi" }
+      }
+      }), yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeProxyConfig"
+      resources = {
+        requests = { cpu = "100m", memory = "50Mi" }
+        limits   = { memory = "256Mi" }
+      }
       }), yamlencode({
       apiVersion = "v1alpha1"
       kind       = "KubeServiceAccountConfig"

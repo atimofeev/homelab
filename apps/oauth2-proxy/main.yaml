@@ -113,7 +113,6 @@ spec:
             cpu: 10m
             memory: 64Mi
           limits:
-            cpu: 500m
             memory: 128Mi
         extraObjects:
           - apiVersion: generators.external-secrets.io/v1alpha1

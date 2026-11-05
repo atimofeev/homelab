@@ -17,6 +17,12 @@ spec:
       helm:
         releaseName: traefik
         valuesObject:
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
           providers:
             kubernetesGateway:
               enabled: true

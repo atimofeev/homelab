@@ -41,11 +41,10 @@ spec:
             - containerPort: 8888
           resources:
             limits:
-              cpu: 250m
               memory: 1Gi
             requests:
-              cpu: 250m
-              memory: 1Gi
+              cpu: 10m
+              memory: 64Mi
           startupProbe:
             httpGet:
               path: /healthz

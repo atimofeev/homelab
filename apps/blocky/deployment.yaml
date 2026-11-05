@@ -34,6 +34,12 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
         - name: blocky
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
           image: ghcr.io/0xerr0r/blocky:v0.35.0
           args: ["serve", "--config", "/app/config.yml"]
           securityContext:

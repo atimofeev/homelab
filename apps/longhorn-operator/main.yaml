@@ -17,12 +17,36 @@ spec:
       helm:
         releaseName: longhorn
         valuesObject:
+          longhornManager:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+          longhornGlobalManager:
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 256Mi
           metrics:
             serviceMonitor:
               enabled: true
           preUpgradeChecker:
             jobEnabled: false
           defaultSettings:
+            systemManagedCSIComponentsResourceLimits: |
+              {
+                "csi-attacher": {"requests": {"cpu": "5m", "memory": "32Mi"}, "limits": {"memory": "128Mi"}},
+                "csi-provisioner": {"requests": {"cpu": "5m", "memory": "32Mi"}, "limits": {"memory": "128Mi"}},
+                "csi-resizer": {"requests": {"cpu": "5m", "memory": "32Mi"}, "limits": {"memory": "128Mi"}},
+                "csi-snapshotter": {"requests": {"cpu": "5m", "memory": "32Mi"}, "limits": {"memory": "128Mi"}},
+                "longhorn-csi-plugin": {"requests": {"cpu": "10m", "memory": "32Mi"}, "limits": {"memory": "256Mi"}},
+                "node-driver-registrar": {"requests": {"cpu": "5m", "memory": "16Mi"}, "limits": {"memory": "64Mi"}},
+                "longhorn-liveness-probe": {"requests": {"cpu": "5m", "memory": "16Mi"}, "limits": {"memory": "64Mi"}}
+              }
             concurrentAutomaticEngineUpgradePerNodeLimit: "1"
             concurrentReplicaRebuildPerNodeLimit: "2"
             snapshotHeavyTaskConcurrentLimit: "2"

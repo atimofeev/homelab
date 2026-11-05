@@ -124,7 +124,6 @@ spec:
               cpu: 10m
               memory: 64Mi
             limits:
-              cpu: 500m
               memory: 256Mi
     - repoURL: https://github.com/atimofeev/homelab
       targetRevision: HEAD

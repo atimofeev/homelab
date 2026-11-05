@@ -23,6 +23,12 @@ spec:
         fsGroup: 101
       containers:
         - name: vert
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              memory: 128Mi
           image: ghcr.io/vert-sh/vert:sha-9154213
           securityContext:
             runAsUser: 101

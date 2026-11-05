@@ -31,17 +31,54 @@ resource "helm_release" "argo_cd" {
       }
       controller = {
         networkPolicy = { create = true }
+        resources = {
+          requests = { cpu = "100m", memory = "512Mi" }
+          limits   = { memory = "2Gi" }
+        }
       }
       repoServer = {
         networkPolicy = { create = true }
+        resources = {
+          requests = { cpu = "25m", memory = "64Mi" }
+          limits   = { memory = "1Gi" }
+        }
+        copyutil = {
+          resources = {
+            requests = { cpu = "10m", memory = "32Mi" }
+            limits   = { memory = "128Mi" }
+          }
+        }
       }
       redis = {
         networkPolicy = { create = true }
+        resources = {
+          requests = { cpu = "10m", memory = "32Mi" }
+          limits   = { memory = "128Mi" }
+        }
       }
       notifications = {
         networkPolicy = { create = true }
+        resources = {
+          requests = { cpu = "10m", memory = "32Mi" }
+          limits   = { memory = "128Mi" }
+        }
       }
-      extraObjects = yamldecode(file("${path.module}/argocd-network-policies.yaml"))
+      applicationSet = {
+        resources = {
+          requests = { cpu = "10m", memory = "64Mi" }
+          limits   = { memory = "256Mi" }
+        }
+      }
+      redisSecretInit = {
+        resources = {
+          requests = { cpu = "10m", memory = "32Mi" }
+          limits   = { memory = "128Mi" }
+        }
+      }
+      extraObjects = concat(
+        yamldecode(file("${path.module}/argocd-network-policies.yaml")),
+        yamldecode(file("${path.module}/kube-system-resource-policies.yaml")),
+      )
       dex = {
         enabled = false
       }
@@ -68,6 +105,10 @@ resource "helm_release" "argo_cd" {
         }
       }
       server = {
+        resources = {
+          requests = { cpu = "10m", memory = "64Mi" }
+          limits   = { memory = "256Mi" }
+        }
         ingress = {
           enabled = false
         }
