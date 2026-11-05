@@ -51,7 +51,7 @@ resource "routeros_ip_dhcp_server_lease" "this" {
 }
 
 locals {
-  talos_pxe_url = "https://pxe.factory.talos.dev/pxe/${talos_image_factory_schematic.ipxe.id}/${var.talos_version}/metal-amd64"
+  talos_pxe_url = "https://pxe.factory.talos.dev/pxe/${talos_image_factory_schematic.this.id}/${var.talos_version}/metal-amd64"
 }
 
 # iPXE/netboot DHCP options (see homelab issue #6)

@@ -34,8 +34,10 @@ bootstrap and kubeconfig retrieval use real node addresses rather than the VIP.
 
 `talos_machine.this` manages machine configuration; `talos_cluster.this` tracks
 bootstrap and orchestrates rolling Kubernetes upgrades. Machine configuration
-changes are not automatically serialized by `for_each`. The iPXE schematic
-wipes STATE and EPHEMERAL; do not use an iPXE reboot as a rollout method.
+changes are not automatically serialized by `for_each`. Installer and iPXE share
+`talos_image_factory_schematic.this`, which omits the early-boot wipe argument so
+blank disks can reach maintenance mode. Do not use an iPXE reboot as a routine
+rollout method.
 
 VIP API access is verified, but deliberate VIP failover testing remains outstanding.
 
