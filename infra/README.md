@@ -41,6 +41,193 @@ rollout method.
 
 VIP API access is verified, but deliberate VIP failover testing remains outstanding.
 
+## Talos Node Reinstallation Through Maintenance Mode
+
+Use this procedure when replacing a node's system disk, for example when moving
+from HDD to NVMe. Reinstall one node at a time; keep the other two control planes
+healthy. Commands use OpenTofu (`tofu`), this repository's Terraform-compatible CLI.
+
+### 1. Prepare and Back Up
+
+Before shutting down the node, move workloads off it while respecting
+PodDisruptionBudgets. Verify CNPG has a healthy primary and streaming standby
+elsewhere, and evict/rebuild Longhorn replicas off the disk where possible.
+A single-replica Longhorn volume has no storage redundancy: replacing its disk
+loses that copy, even if CNPG can recover the database from another instance.
+
+Run from the repository root, with infrastructure credentials loaded:
+
+```bash
+cd infra
+umask 077
+mkdir -p /tmp/pi-coding-agent
+WORKDIR=$(mktemp -d /tmp/pi-coding-agent/talos-reinstall.XXXXXX)
+NODE=192.168.88.252
+SURVIVOR=192.168.88.253
+PEERS=192.168.88.253,192.168.88.254
+NODE_NAME=talos-b5h-1e4
+TARGET='talos_machine.this["10:E7:C6:07:0B:F5"]'
+export KUBECONFIG="$HOME/.kube/homelab.yaml"
+
+tofu init
+kubectl get nodes
+kubectl get clusters.postgresql.cnpg.io -A
+talosctl --context homelab -e "$SURVIVOR" -n "$PEERS" etcd status
+talosctl --context homelab -e "$SURVIVOR" -n "$SURVIVOR" \
+  etcd snapshot "$WORKDIR/etcd.snapshot"
+```
+
+Adapt addresses, hostname and MAC-keyed resource target to the actual node.
+Keep this shell's variables for the following steps. Snapshots and saved plans
+contain secrets: keep them private and copy the snapshot to durable backup
+storage before proceeding; `/tmp` is temporary. An etcd snapshot does not back up
+application PVC contents.
+
+### 2. Boot the Replacement Disk Into Maintenance Mode
+
+Shut down the node, replace the disk, then boot Talos using PXE or ISO. Use the
+current Talos version and required extensions. The boot command line must omit:
+
+```text
+talos.experimental.wipe=system:EPHEMERAL,STATE
+```
+
+This early-boot reset needs an identifiable existing Talos system disk. On a
+blank replacement disk it can fail with `no system disk found` and reboot.
+Changing it to `system:STATE` does not fix that prerequisite.
+
+The shared `talos_image_factory_schematic.this` already omits this argument.
+If the router still points to an older wipe-enabled schematic, review and apply
+the DHCP boot-script target and its dependencies:
+
+```bash
+tofu plan \
+  -target=routeros_ip_dhcp_server_option.talos_script \
+  -out="$WORKDIR/pxe.tfplan"
+# Review the plan before applying.
+tofu apply "$WORKDIR/pxe.tfplan"
+```
+
+The DHCP boot script is shared and affects subsequent network boots of other
+nodes. Automatic STATE/EPHEMERAL wiping is no longer part of this boot path.
+For deliberate wipe-based recovery, use a separate recovery image and a per-node
+boot override; do not add destructive wipe arguments to the shared schematic
+used by installed nodes.
+
+### 3. Inspect the Disk and Update the Node Input
+
+```bash
+talosctl -n "$NODE" --insecure get machinestatus
+talosctl -n "$NODE" --insecure get disks
+```
+
+Expect stage `maintenance`, ready `true`. Check the new disk's path, model,
+capacity and serial. BIOS detection alone does not establish Talos detection.
+Update only the target node's disk in `terraform.tfvars`; preserve its IP, MAC,
+type and pinned hostname:
+
+```hcl
+{
+  hostname = "talos-b5h-1e4"
+  ip       = "192.168.88.252"
+  mac      = "10:E7:C6:07:0B:F5"
+  disk     = "/dev/nvme0n1"
+  type     = "controlplane"
+}
+```
+
+`talos.tf` generates the `UnattendedInstallConfig` disk selector from this path.
+It also pins the hostname using `HostnameConfig` with `auto: "off"`; keep this
+name unchanged to avoid creating a new Kubernetes/Longhorn node identity. Do not
+add legacy `machine.network.hostname` alongside the generated hostname document.
+
+```bash
+tofu fmt -check
+tofu validate
+```
+
+### 4. Remove a Stale etcd Member, If Present
+
+For a blank replacement disk, the old local etcd data is gone. Recheck surviving
+members and identify the old member by its peer IP, not by a remembered ID:
+
+```bash
+talosctl --context homelab -e "$SURVIVOR" -n "$PEERS" etcd status
+talosctl --context homelab -e "$SURVIVOR" -n "$SURVIVOR" etcd members
+```
+
+If the old member for `$NODE` remains, remove only that member after confirming
+both survivors are healthy and the snapshot is secured:
+
+```bash
+# Replace the placeholder with the old member ID from the preceding output.
+talosctl --context homelab -e "$SURVIVOR" -n "$SURVIVOR" \
+  etcd remove-member '<OLD_MEMBER_ID>'
+```
+
+Skip removal if the member is already absent. This step is for the lost-disk
+case, not a routine reboot of a node whose etcd data is intact. Never run
+`talosctl bootstrap` to rejoin an existing cluster, and do not replace/reset the
+OpenTofu machine resource or discard the cluster secrets.
+
+### 5. Apply Only the Reinstalled Node
+
+```bash
+tofu plan -target="$TARGET" -out="$WORKDIR/node.tfplan"
+# Expect the target machine update; stop for unrelated changes or destroys.
+tofu apply "$WORKDIR/node.tfplan"
+```
+
+The pinned Talos provider supports maintenance-mode connections. It applies the
+existing cluster credentials and machine configuration, triggers unattended
+installation, and waits through startup. Do not power-cycle during installation.
+If apply fails, inspect node and installation state before retrying; configuration
+or installation may already have succeeded partially.
+
+Targeting is appropriate for this recovery, not routine infrastructure updates.
+Review dependencies too: `-target` does not guarantee only one resource changes.
+
+### 6. Verify Rejoin and Recover Storage
+
+```bash
+talosctl --context homelab -e "$NODE" -n "$NODE" get machinestatus
+talosctl --context homelab -e "$NODE" -n "$NODE" get hostname
+talosctl --context homelab -e "$SURVIVOR" -n "$SURVIVOR" etcd members
+talosctl --context homelab -e "$SURVIVOR" -n "$PEERS,$NODE" etcd status
+kubectl get nodes -o wide
+kubectl -n longhorn-system get nodes.longhorn.io
+kubectl -n longhorn-system get volumes.longhorn.io
+kubectl get clusters.postgresql.cnpg.io -A
+```
+
+Expect three healthy control planes, the intended hostname, and three healthy
+etcd members. Uncordon `$NODE_NAME` if it was cordoned during preparation and is
+ready to accept workloads.
+
+Storage recovery is separate from node readiness:
+
+- Longhorn keeps `/var/lib/longhorn/` as its path, but the fresh filesystem has a
+  new disk identity. Reconcile the old disk entry and rebuild from surviving
+  replicas; never copy the old disk UUID onto an empty disk.
+- Rebuild only failed CNPG standbys whose storage is actually lost or corrupt.
+  Confirm the primary and a streaming standby first, preserve a verified backup,
+  and use a matching CNPG plugin. Prefer retaining old claims with `--keep-pvc`
+  until the replacement is verified. Do not destroy already recovered replicas.
+- Verify CNPG replication with SQL, not only Ready counts. Keep primaries intact.
+- Remove stale node/replica records only after replacement health is established.
+  Retained faulted PVCs and their failed replica records require separate cleanup.
+
+Finish with a full drift check; review rather than blindly applying any remaining
+changes:
+
+```bash
+tofu plan
+```
+
+References: [Talos unattended installation](https://docs.siderolabs.com/talos/v1.14/configure-your-talos-cluster/lifecycle-management/unattended-install),
+[Talos etcd maintenance](https://docs.siderolabs.com/talos/v1.14/build-and-extend-talos/cluster-operations-and-maintenance/etcd-maintenance),
+and [Longhorn node removal](https://longhorn.io/docs/1.13.0/nodes-and-volumes/nodes/graceful-node-removal/).
+
 ## Flannel NetworkPolicy Enforcement
 
 Control-plane machine configurations enable `kubeNetworkPoliciesEnabled` in the
