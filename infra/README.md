@@ -117,8 +117,8 @@ used by installed nodes.
 ### 3. Inspect the Disk and Update the Node Input
 
 ```bash
-talosctl -n "$NODE" --insecure get machinestatus
-talosctl -n "$NODE" --insecure get disks
+talosctl get machinestatus --insecure -n "$NODE"
+talosctl get disks --insecure -n "$NODE"
 ```
 
 Expect stage `maintenance`, ready `true`. Check the new disk's path, model,
