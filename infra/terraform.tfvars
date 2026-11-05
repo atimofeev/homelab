@@ -37,10 +37,11 @@ talos_image_extensions  = ["siderolabs/iscsi-tools", "siderolabs/util-linux-tool
 talos_image_kernel_args = ["pcie_aspm=off", "e1000e.SmartPowerDownEnable=0"]
 nodes = [
   {
-    ip   = "192.168.88.252"
-    mac  = "10:E7:C6:07:0B:F5"
-    disk = "/dev/sda"
-    type = "controlplane"
+    hostname = "talos-b5h-1e4"
+    ip       = "192.168.88.252"
+    mac      = "10:E7:C6:07:0B:F5"
+    disk     = "/dev/nvme0n1"
+    type     = "controlplane"
   },
   {
     hostname = "talos-nof-ec2"
