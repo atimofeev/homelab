@@ -29,7 +29,8 @@ separately reviewed root OpenTofu plan/apply, not only application GitOps sync.
 | --- | --- | --- |
 | BentoPDF / Vert | Traefik on 8080 / 80 | Deny initiated connections, including DNS |
 | Longhorn UI | Traefik on 8000 | Unchanged; proxies manager API |
-| Prometheus | Traefik/Grafana on 9090; Prometheus self-scrape on 9090/8080 | Unchanged; discovery and scraping |
+| Prometheus | Traefik/Grafana and node-metrics receiver on 9090; Prometheus self-scrape on 9090/8080 | Unchanged; discovery and scraping |
+| Node-metrics receiver | Any source on mTLS write-only 8443 (host-network collectors); no public route | Unchanged; Prometheus 9090 and DNS |
 | Alertmanager | Traefik/Prometheus/Grafana on 9093; Prometheus on 8080; peers on TCP/UDP 9094 | Unchanged; notification providers |
 | Grafana | Traefik/Prometheus on 3000 | Unchanged; datasources, Dex, dashboard initialization |
 | Dex | Traefik on 5556; Prometheus on 5558 | Unchanged; Google and Kubernetes storage |
@@ -85,6 +86,9 @@ those metrics independently.
   a guessed broad HTTPS rule is not destination isolation.
 - Select system workloads, not whole namespaces. Preserve cert-manager HTTP-01
   solver pods and Longhorn engine/replica/CSI traffic.
+- Node-local metrics agents retain loopback-only component listeners. Their
+  dedicated receiver uses mTLS rather than host-network pod selectors; see
+  [collector boundaries and rollout checks](node-metrics.md).
 - Host-network services, including node exporter, control-plane components, and
   MetalLB speakers, need node/LAN firewall review. Ordinary NetworkPolicy is not
   a portable host firewall; traffic from a pod's own node is special-cased.

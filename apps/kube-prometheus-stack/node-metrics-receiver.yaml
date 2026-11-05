@@ -1,0 +1,187 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: node-metrics-receiver
+  namespace: monitoring
+spec:
+  secretName: node-metrics-receiver-tls
+  dnsNames:
+    - node-metrics-receiver.monitoring.svc
+    - node-metrics-receiver.monitoring.svc.cluster.local
+  usages: [digital signature, server auth]
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  duration: 168h
+  renewBefore: 24h
+  issuerRef:
+    name: cluster-signed-issuer
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: node-metrics-agent
+  namespace: monitoring
+spec:
+  secretName: node-metrics-agent-tls
+  commonName: node-metrics-agent
+  usages: [digital signature, client auth]
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  duration: 168h
+  renewBefore: 24h
+  issuerRef:
+    name: cluster-signed-issuer
+    kind: ClusterIssuer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-metrics-receiver
+  namespace: monitoring
+data:
+  nginx.conf: |
+    worker_processes 1;
+    pid /tmp/nginx.pid;
+    error_log /dev/stderr warn;
+    events { worker_connections 128; }
+    http {
+      access_log off;
+      client_body_temp_path /tmp/client_body;
+      proxy_temp_path /tmp/proxy;
+      fastcgi_temp_path /tmp/fastcgi;
+      uwsgi_temp_path /tmp/uwsgi;
+      scgi_temp_path /tmp/scgi;
+      server {
+        listen 8080;
+        location = /healthz { return 200 "ok\n"; }
+        location / { return 404; }
+      }
+      server {
+        listen 8443 ssl;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_certificate /etc/receiver-tls/tls.crt;
+        ssl_certificate_key /etc/receiver-tls/tls.key;
+        ssl_client_certificate /etc/receiver-tls/ca.crt;
+        ssl_verify_client on;
+        if ($ssl_client_s_dn != "CN=node-metrics-agent") { return 403; }
+        client_max_body_size 8m;
+        location = /api/v1/write {
+          limit_except POST { deny all; }
+          proxy_set_header Authorization "";
+          proxy_pass http://kube-prometheus-stack-prometheus.monitoring.svc:9090;
+        }
+        location / { return 404; }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-metrics-receiver
+  namespace: monitoring
+  annotations:
+    secret.reloader.stakater.com/reload: node-metrics-receiver-tls
+    configmap.reloader.stakater.com/reload: node-metrics-receiver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-metrics-receiver
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-metrics-receiver
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.30.6-alpine
+          command: [nginx]
+          args: [-g, "daemon off;"]
+          ports:
+            - name: https-write
+              containerPort: 8443
+            - name: health
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: tls
+              mountPath: /etc/receiver-tls
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: node-metrics-receiver
+        - name: tls
+          secret:
+            secretName: node-metrics-receiver-tls
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-metrics-receiver
+  namespace: monitoring
+spec:
+  selector:
+    app.kubernetes.io/name: node-metrics-receiver
+  ports:
+    - name: https-write
+      port: 8443
+      targetPort: https-write
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: node-metrics-receiver
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: node-metrics-receiver
+  policyTypes: [Ingress]
+  ingress:
+    # Host-network agents cannot be selected portably by pod/namespace labels.
+    # Only this mTLS-authenticated, write-only listener is reachable.
+    - ports:
+        - protocol: TCP
+          port: 8443

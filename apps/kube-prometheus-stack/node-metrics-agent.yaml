@@ -1,0 +1,313 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: node-metrics-agent
+  namespace: monitoring
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-metrics-agent
+rules:
+  - nonResourceURLs: [/metrics]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-metrics-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: node-metrics-agent
+subjects:
+  - kind: ServiceAccount
+    name: node-metrics-agent
+    namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: node-metrics-agent-discovery
+  namespace: kube-system
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: node-metrics-agent-discovery
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: node-metrics-agent-discovery
+subjects:
+  - kind: ServiceAccount
+    name: node-metrics-agent
+    namespace: monitoring
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-metrics-agent
+  namespace: monitoring
+data:
+  prometheus.yaml: |
+    global:
+      scrape_interval: 30s
+      scrape_timeout: 10s
+    remote_write:
+      - url: https://node-metrics-receiver.monitoring.svc:8443/api/v1/write
+        follow_redirects: false
+        tls_config:
+          ca_file: /etc/remote-write-tls/ca.crt
+          cert_file: /etc/remote-write-tls/tls.crt
+          key_file: /etc/remote-write-tls/tls.key
+          min_version: TLS12
+    scrape_configs:
+      - job_name: node-metrics-agent
+        static_configs:
+          - targets: [127.0.0.1:19090]
+            labels:
+              node: $(NODE_NAME)
+              namespace: monitoring
+              pod: $(POD_NAME)
+        relabel_configs:
+          - target_label: instance
+            replacement: $(NODE_NAME):19090
+      - job_name: control-plane-local
+        scheme: https
+        authorization:
+          credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        # Talos components generate self-signed in-memory serving certificates.
+        # Approved exception: addresses below are rewritten to host loopback ONLY.
+        tls_config:
+          insecure_skip_verify: true
+        follow_redirects: false
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [kube-system]
+            selectors:
+              - role: pod
+                field: spec.nodeName=$(NODE_NAME)
+                label: k8s-app in (kube-controller-manager,kube-scheduler)
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_phase]
+            regex: Running
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_label_k8s_app]
+            target_label: job
+          - source_labels: [__meta_kubernetes_pod_label_k8s_app]
+            regex: kube-controller-manager
+            target_label: __address__
+            replacement: 127.0.0.1:10257
+          - source_labels: [__meta_kubernetes_pod_label_k8s_app]
+            regex: kube-scheduler
+            target_label: __address__
+            replacement: 127.0.0.1:10259
+          - source_labels: [__address__]
+            regex: 127\.0\.0\.1:(10257|10259)
+            action: keep
+          - source_labels: [__address__]
+            regex: 127\.0\.0\.1:(.*)
+            target_label: instance
+            replacement: $(NODE_NAME):$1
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+      - job_name: kube-proxy
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [kube-system]
+            selectors:
+              - role: pod
+                field: spec.nodeName=$(NODE_NAME)
+                label: k8s-app=kube-proxy
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_phase]
+            regex: Running
+            action: keep
+          - target_label: __address__
+            replacement: 127.0.0.1:10249
+          - target_label: instance
+            replacement: $(NODE_NAME):10249
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-metrics-agent
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-metrics-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-metrics-agent
+    spec:
+      serviceAccountName: node-metrics-agent
+      automountServiceAccountToken: false
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+        - operator: Exists
+          effect: NoSchedule
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: init-config-reloader
+          image: quay.io/prometheus-operator/prometheus-config-reloader:v0.94.2
+          args:
+            - --watch-interval=0
+            - --listen-address=127.0.0.1:19091
+            - --config-file=/etc/agent-config/prometheus.yaml
+            - --config-envsubst-file=/etc/agent-config-out/prometheus.yaml
+          env: &reloader-env
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          resources: &reloader-resources
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          securityContext: &container-security
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/agent-config
+              readOnly: true
+            - name: config-out
+              mountPath: /etc/agent-config-out
+      containers:
+        - name: prometheus
+          image: quay.io/prometheus/prometheus:v3.15.1-distroless
+          args:
+            - --agent
+            - --config.file=/etc/agent-config-out/prometheus.yaml
+            - --storage.agent.path=/prometheus
+            - --storage.agent.retention.max-time=2h
+            - --web.listen-address=127.0.0.1:19090
+            - --web.enable-lifecycle
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+              ephemeral-storage: 128Mi
+            limits:
+              memory: 256Mi
+              ephemeral-storage: 1Gi
+          securityContext: *container-security
+          startupProbe:
+            httpGet:
+              host: 127.0.0.1
+              path: /-/ready
+              port: 19090
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              host: 127.0.0.1
+              path: /-/ready
+              port: 19090
+          livenessProbe:
+            httpGet:
+              host: 127.0.0.1
+              path: /-/healthy
+              port: 19090
+          volumeMounts:
+            - name: config-out
+              mountPath: /etc/agent-config-out
+              readOnly: true
+            - name: data
+              mountPath: /prometheus
+            - name: api-access
+              mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              readOnly: true
+            - name: remote-write-tls
+              mountPath: /etc/remote-write-tls
+              readOnly: true
+        - name: config-reloader
+          image: quay.io/prometheus-operator/prometheus-config-reloader:v0.94.2
+          args:
+            - --listen-address=127.0.0.1:19091
+            - --reload-url=http://127.0.0.1:19090/-/reload
+            - --config-file=/etc/agent-config/prometheus.yaml
+            - --config-envsubst-file=/etc/agent-config-out/prometheus.yaml
+            - --watched-dir=/etc/remote-write-tls
+          env: *reloader-env
+          resources: *reloader-resources
+          securityContext: *container-security
+          volumeMounts:
+            - name: config
+              mountPath: /etc/agent-config
+              readOnly: true
+            - name: config-out
+              mountPath: /etc/agent-config-out
+            - name: remote-write-tls
+              mountPath: /etc/remote-write-tls
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: node-metrics-agent
+        - name: config-out
+          emptyDir:
+            medium: Memory
+            sizeLimit: 8Mi
+        - name: data
+          emptyDir:
+            sizeLimit: 768Mi
+        - name: api-access
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  expirationSeconds: 3600
+              - configMap:
+                  name: kube-root-ca.crt
+                  items:
+                    - key: ca.crt
+                      path: ca.crt
+              - downwardAPI:
+                  items:
+                    - path: namespace
+                      fieldRef:
+                        fieldPath: metadata.namespace
+        - name: remote-write-tls
+          secret:
+            secretName: node-metrics-agent-tls

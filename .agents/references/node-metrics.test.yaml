@@ -1,0 +1,332 @@
+# Run against extracted PrometheusRule spec; see node-metrics.md.
+rule_files:
+- node-metrics-rules.yaml
+evaluation_interval: 1m
+tests:
+- name: Healthy agents and targets on control-plane and worker
+  interval: 1m
+  input_series:
+  - &id001
+    series: kube_node_info{node="cp"}
+    values: 1+0x20
+  - &id002
+    series: kube_node_info{node="worker"}
+    values: 1+0x20
+  - &id003
+    series: kube_node_role{node="cp",role="control-plane"}
+    values: 1+0x20
+  - &id004
+    series: up{job="node-metrics-agent",node="cp"}
+    values: 1+0x20
+  - &id009
+    series: up{job="node-metrics-agent",node="worker"}
+    values: 1+0x20
+  - &id005
+    series: up{job="kube-scheduler",node="cp"}
+    values: 1+0x20
+  - &id006
+    series: up{job="kube-controller-manager",node="cp"}
+    values: 1+0x20
+  - &id007
+    series: up{job="kube-proxy",node="cp"}
+    values: 1+0x20
+  - &id008
+    series: up{job="kube-proxy",node="worker"}
+    values: 1+0x20
+  alert_rule_test:
+  - eval_time: 20m
+    alertname: NodeMetricsAgentMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsAgentConfigReloadFailed
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsSchedulerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsControllerManagerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsKubeProxyTargetMissing
+    exp_alerts: []
+- name: Lost worker heartbeat despite healthy control-plane
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id005
+  - *id006
+  - *id007
+  - *id008
+  alert_rule_test:
+  - eval_time: 20m
+    alertname: NodeMetricsAgentMissing
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        node: worker
+      exp_annotations:
+        summary: Node-local metrics missing for worker
+        description: No healthy collector heartbeat has reached central Prometheus
+          for this node. Check the DaemonSet, discovery credentials, receiver TLS
+          and remote-write delivery; component scrape alerts alone cannot detect a
+          lost agent.
+  - eval_time: 20m
+    alertname: NodeMetricsAgentConfigReloadFailed
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsSchedulerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsControllerManagerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsKubeProxyTargetMissing
+    exp_alerts: []
+- name: No agents at all
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  alert_rule_test:
+  - eval_time: 20m
+    alertname: NodeMetricsAgentMissing
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        node: cp
+      exp_annotations:
+        summary: Node-local metrics missing for cp
+        description: No healthy collector heartbeat has reached central Prometheus
+          for this node. Check the DaemonSet, discovery credentials, receiver TLS
+          and remote-write delivery; component scrape alerts alone cannot detect a
+          lost agent.
+    - exp_labels:
+        severity: warning
+        node: worker
+      exp_annotations:
+        summary: Node-local metrics missing for worker
+        description: No healthy collector heartbeat has reached central Prometheus
+          for this node. Check the DaemonSet, discovery credentials, receiver TLS
+          and remote-write delivery; component scrape alerts alone cannot detect a
+          lost agent.
+  - eval_time: 20m
+    alertname: NodeMetricsAgentConfigReloadFailed
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsSchedulerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsControllerManagerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsKubeProxyTargetMissing
+    exp_alerts: []
+- name: kube-scheduler missing on cp
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id009
+  - *id006
+  - *id007
+  - *id008
+  alert_rule_test:
+  - eval_time: 20m
+    alertname: NodeMetricsAgentMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsAgentConfigReloadFailed
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsSchedulerTargetMissing
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        node: cp
+      exp_annotations:
+        summary: Scheduler target missing on cp
+        description: Collector is reporting, but scheduler target is absent. Check
+          the static pod and collector's kube-system pod-discovery permission.
+  - eval_time: 20m
+    alertname: NodeMetricsControllerManagerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsKubeProxyTargetMissing
+    exp_alerts: []
+- name: kube-controller-manager missing on cp
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id009
+  - *id005
+  - *id007
+  - *id008
+  alert_rule_test:
+  - eval_time: 20m
+    alertname: NodeMetricsAgentMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsAgentConfigReloadFailed
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsSchedulerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsControllerManagerTargetMissing
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        node: cp
+      exp_annotations:
+        summary: Controller-manager target missing on cp
+        description: Collector is reporting, but controller-manager target is absent.
+          Check the static pod and collector's kube-system pod-discovery permission.
+  - eval_time: 20m
+    alertname: NodeMetricsKubeProxyTargetMissing
+    exp_alerts: []
+- name: kube-proxy missing on worker
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id009
+  - *id005
+  - *id006
+  - *id007
+  alert_rule_test:
+  - eval_time: 20m
+    alertname: NodeMetricsAgentMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsAgentConfigReloadFailed
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsSchedulerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsControllerManagerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsKubeProxyTargetMissing
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        node: worker
+      exp_annotations:
+        summary: Kube-proxy target missing on worker
+        description: Collector is reporting, but kube-proxy target is absent. Check
+          the kube-proxy DaemonSet and collector's kube-system pod-discovery permission.
+- name: Failed scrape remains present for upstream unreachable rules
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id009
+  - series: up{job="kube-scheduler",node="cp"}
+    values: 0+0x20
+  - *id006
+  - *id007
+  - *id008
+  alert_rule_test:
+  - eval_time: 20m
+    alertname: NodeMetricsAgentMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsAgentConfigReloadFailed
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsSchedulerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsControllerManagerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsKubeProxyTargetMissing
+    exp_alerts: []
+- name: Stale heartbeat is detected
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - series: up{job="node-metrics-agent",node="worker"}
+    values: 1 1 stale
+  - *id005
+  - *id006
+  - *id007
+  - *id008
+  alert_rule_test:
+  - eval_time: 20m
+    alertname: NodeMetricsAgentMissing
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        node: worker
+      exp_annotations:
+        summary: Node-local metrics missing for worker
+        description: No healthy collector heartbeat has reached central Prometheus
+          for this node. Check the DaemonSet, discovery credentials, receiver TLS
+          and remote-write delivery; component scrape alerts alone cannot detect a
+          lost agent.
+  - eval_time: 20m
+    alertname: NodeMetricsAgentConfigReloadFailed
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsSchedulerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsControllerManagerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsKubeProxyTargetMissing
+    exp_alerts: []
+- name: Failed config reload
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id009
+  - *id005
+  - *id006
+  - *id007
+  - *id008
+  - series: prometheus_config_last_reload_successful{job="node-metrics-agent",node="cp"}
+    values: 0+0x20
+  alert_rule_test:
+  - eval_time: 20m
+    alertname: NodeMetricsAgentMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsAgentConfigReloadFailed
+    exp_alerts:
+    - exp_labels:
+        severity: warning
+        node: cp
+        job: node-metrics-agent
+      exp_annotations:
+        summary: Node-local collector configuration reload failed on cp
+  - eval_time: 20m
+    alertname: NodeMetricsSchedulerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsControllerManagerTargetMissing
+    exp_alerts: []
+  - eval_time: 20m
+    alertname: NodeMetricsKubeProxyTargetMissing
+    exp_alerts: []

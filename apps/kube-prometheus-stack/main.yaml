@@ -17,6 +17,16 @@ spec:
       helm:
         releaseName: kube-prometheus-stack
         valuesObject:
+          # Node-local agents replace direct scrapes; keep component rules enabled.
+          kubeControllerManager:
+            serviceMonitor:
+              enabled: false
+          kubeScheduler:
+            serviceMonitor:
+              enabled: false
+          kubeProxy:
+            serviceMonitor:
+              enabled: false
           prometheusOperator:
             resources:
               requests:
@@ -326,6 +336,7 @@ spec:
                       kind: Middleware
                       name: prometheus-auth
             prometheusSpec:
+              enableRemoteWriteReceiver: true
               resources:
                 requests:
                   cpu: 100m

@@ -1,0 +1,73 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: node-metrics-agent
+  namespace: monitoring
+spec:
+  groups:
+    - name: node-metrics-agent
+      rules:
+        - alert: NodeMetricsAgentMissing
+          expr: |
+            max by (node) (kube_node_info)
+            unless on (node)
+            (max by (node) (up{job="node-metrics-agent"}) == 1)
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node-local metrics missing for {{ $labels.node }}"
+            description: "No healthy collector heartbeat has reached central Prometheus for this node. Check the DaemonSet, discovery credentials, receiver TLS and remote-write delivery; component scrape alerts alone cannot detect a lost agent."
+        - alert: NodeMetricsAgentConfigReloadFailed
+          expr: prometheus_config_last_reload_successful{job="node-metrics-agent"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node-local collector configuration reload failed on {{ $labels.node }}"
+        - alert: NodeMetricsSchedulerTargetMissing
+          expr: |
+            (
+              max by (node) (kube_node_role{role="control-plane"})
+              and on (node)
+              (max by (node) (up{job="node-metrics-agent"}) == 1)
+            )
+            unless on (node)
+            up{job="kube-scheduler"}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Scheduler target missing on {{ $labels.node }}"
+            description: "Collector is reporting, but scheduler target is absent. Check the static pod and collector's kube-system pod-discovery permission."
+        - alert: NodeMetricsControllerManagerTargetMissing
+          expr: |
+            (
+              max by (node) (kube_node_role{role="control-plane"})
+              and on (node)
+              (max by (node) (up{job="node-metrics-agent"}) == 1)
+            )
+            unless on (node)
+            up{job="kube-controller-manager"}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Controller-manager target missing on {{ $labels.node }}"
+            description: "Collector is reporting, but controller-manager target is absent. Check the static pod and collector's kube-system pod-discovery permission."
+        - alert: NodeMetricsKubeProxyTargetMissing
+          expr: |
+            (
+              max by (node) (kube_node_info)
+              and on (node)
+              (max by (node) (up{job="node-metrics-agent"}) == 1)
+            )
+            unless on (node)
+            up{job="kube-proxy"}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Kube-proxy target missing on {{ $labels.node }}"
+            description: "Collector is reporting, but kube-proxy target is absent. Check the kube-proxy DaemonSet and collector's kube-system pod-discovery permission."
