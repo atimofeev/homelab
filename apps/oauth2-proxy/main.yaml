@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://oauth2-proxy.github.io/manifests
     chart: oauth2-proxy
-    targetRevision: 10.7.1
+    targetRevision: 10.7.2
     helm:
       releaseName: oauth2-proxy
       valuesObject:
