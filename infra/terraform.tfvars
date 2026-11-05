@@ -47,7 +47,7 @@ nodes = [
     hostname = "talos-nof-ec2"
     ip       = "192.168.88.254"
     mac      = "10:E7:C6:11:C0:82"
-    disk     = "/dev/sda"
+    disk     = "/dev/nvme0n1"
     type     = "controlplane"
   },
   {
