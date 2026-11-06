@@ -180,7 +180,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: init-config-reloader
-          image: quay.io/prometheus-operator/prometheus-config-reloader:v0.94.2
+          image: quay.io/prometheus-operator/prometheus-config-reloader:v0.95.1
           args:
             - --watch-interval=0
             - --listen-address=127.0.0.1:19091
@@ -214,7 +214,7 @@ spec:
               mountPath: /etc/agent-config-out
       containers:
         - name: prometheus
-          image: quay.io/prometheus/prometheus:v3.15.1-distroless
+          image: quay.io/prometheus/prometheus:v3.16.0-distroless
           args:
             - --agent
             - --config.file=/etc/agent-config-out/prometheus.yaml
@@ -261,7 +261,7 @@ spec:
               mountPath: /etc/remote-write-tls
               readOnly: true
         - name: config-reloader
-          image: quay.io/prometheus-operator/prometheus-config-reloader:v0.94.2
+          image: quay.io/prometheus-operator/prometheus-config-reloader:v0.95.1
           args:
             - --listen-address=127.0.0.1:19091
             - --reload-url=http://127.0.0.1:19090/-/reload
