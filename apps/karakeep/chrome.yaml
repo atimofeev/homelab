@@ -28,7 +28,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: chrome
-          image: ghcr.io/karakeep-app/karakeep-chrome:154.0.8037.57-r1@sha256:c51a8c8e6c3c1040a50fa0ecfd0b2fc298401b4229262636552458151f6f18fa
+          image: ghcr.io/karakeep-app/karakeep-chrome:157.0.8103.38-r1@sha256:6c80ed470871bb8c129dc58692ca1714cddbc1392faad3ebf59aecd2e6e58eac
           args:
             - --disable-gpu
             - --disable-dev-shm-usage
