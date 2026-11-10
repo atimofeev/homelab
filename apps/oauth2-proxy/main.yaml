@@ -115,6 +115,29 @@ spec:
           limits:
             memory: 128Mi
         extraObjects:
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: oauth2-proxy-dex
+              namespace: monitoring
+            spec:
+              refreshInterval: 1h0m0s
+              secretStoreRef:
+                name: dex-client-secrets
+                kind: ClusterSecretStore
+              target:
+                template:
+                  engineVersion: v2
+                  mergePolicy: Replace
+                  data:
+                    client-id: oauth2-proxy
+                    # Preserve the ESO expression through Helm's tpl pass.
+                    client-secret: '{{ "{{ .clientSecret }}" }}'
+              data:
+                - secretKey: clientSecret
+                  remoteRef:
+                    key: dex-client-oauth2-proxy
+                    property: password
           - apiVersion: generators.external-secrets.io/v1alpha1
             kind: Password
             metadata:

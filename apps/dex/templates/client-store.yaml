@@ -19,7 +19,7 @@ rules:
   - apiGroups: [""]
     resources: [secrets]
     resourceNames:
-      {{- range .Values.externalSecrets.dexClients }}
+      {{- range .Values.clients }}
       - dex-client-{{ .name }}
       {{- end }}
     verbs: [get]
@@ -77,7 +77,7 @@ spec:
   conditions:
     - namespaces:
         {{- $namespaces := list }}
-        {{- range .Values.externalSecrets.dexClients }}
+        {{- range .Values.clients }}
         {{- $namespaces = append $namespaces .namespace }}
         {{- end }}
         {{- range $namespaces | uniq }}

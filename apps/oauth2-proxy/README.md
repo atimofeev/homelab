@@ -70,9 +70,9 @@ email allowlist.
 
 All four apps reuse the existing oauth2-proxy deployment, Dex client, exact-email
 list, and generated secrets. No new credentials or secret rotation are needed.
-ESO generates the Dex client secret using the existing `dexClients` machinery,
-copies it to `monitoring/oauth2-proxy-dex`, and exposes the matching source to
-Dex. Registered callbacks are:
+The Dex Application generates the source client secret using its local chart.
+This app owns the destination ExternalSecret in `extraObjects`, which copies
+that source to `monitoring/oauth2-proxy-dex`. Registered callbacks are:
 
 - `https://prometheus.prosto.dev/oauth2/callback`
 - `https://alertmanager.prosto.dev/oauth2/callback`

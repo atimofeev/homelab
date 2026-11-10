@@ -1,0 +1,12 @@
+---
+clients:
+  - name: karakeep
+    namespace: karakeep
+  - name: argocd
+    namespace: argocd
+  - name: grafana
+    namespace: monitoring
+  - name: oauth2-proxy
+    namespace: monitoring
+  - name: paperless
+    namespace: paperless-ngx

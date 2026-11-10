@@ -1,0 +1,5 @@
+---
+apiVersion: v2
+name: dex-resources
+version: 1.0.0
+description: Dex client credentials and secret-sharing permissions

@@ -2,6 +2,8 @@
 externalSecrets:
   storeName: bitwarden-secrets-manager
   refreshInterval: 1h0m0s
+  # App-owned ExternalSecrets may also use the Bitwarden store.
+  additionalNamespaces: [dex]
   secrets:
     - name: cloudflare-dns-rw
       namespace: cert-manager
@@ -12,64 +14,3 @@ externalSecrets:
     - name: alertmanager-telegram
       namespace: monitoring
       bitwardenKey: "e4e6225d-47c7-47ca-af32-b4bf005c4479"
-    - name: dex-credentials
-      namespace: dex
-      bitwardenKey: "3c031c83-6f12-4b8c-b603-b4ec0174cee8"
-      target:
-        template:
-          engineVersion: v2
-          mergePolicy: Replace
-          data:
-            GOOGLE_CLIENT_ID: '{{ .GOOGLE_CLIENT_ID }}'
-            GOOGLE_CLIENT_SECRET: '{{ .GOOGLE_CLIENT_SECRET }}'
-  dexClients:
-    - name: argocd
-      namespace: argocd
-      target:
-        template:
-          engineVersion: v2
-          mergePolicy: Replace
-          metadata:
-            labels:
-              app.kubernetes.io/part-of: argocd
-          data:
-            client-secret: '{{ .clientSecret }}'
-    - name: grafana
-      namespace: monitoring
-      target:
-        template:
-          engineVersion: v2
-          mergePolicy: Replace
-          data:
-            GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: '{{ .clientSecret }}'
-    - name: oauth2-proxy
-      namespace: monitoring
-      target:
-        template:
-          engineVersion: v2
-          mergePolicy: Replace
-          data:
-            client-id: oauth2-proxy
-            client-secret: '{{ .clientSecret }}'
-    - name: paperless
-      namespace: paperless-ngx
-      target:
-        template:
-          engineVersion: v2
-          mergePolicy: Replace
-          data:
-            PAPERLESS_SOCIALACCOUNT_PROVIDERS: |
-              {
-                "openid_connect": {
-                  "APPS": [{
-                    "provider_id": "dex",
-                    "name": "Google",
-                    "client_id": "paperless",
-                    "secret": {{ .clientSecret | toJson }},
-                    "settings": {
-                      "server_url": "https://dex.prosto.dev/.well-known/openid-configuration",
-                      "token_auth_method": "client_secret_basic"
-                    }
-                  }]
-                }
-              }
