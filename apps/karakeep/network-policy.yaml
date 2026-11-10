@@ -1,0 +1,65 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: karakeep-server
+  namespace: karakeep
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: karakeep
+      app.kubernetes.io/component: server
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - protocol: TCP
+          port: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: karakeep-chrome
+  namespace: karakeep
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: karakeep
+      app.kubernetes.io/component: chrome
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: karakeep
+              app.kubernetes.io/component: server
+      ports:
+        - protocol: TCP
+          port: 9222
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: karakeep-meilisearch
+  namespace: karakeep
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: karakeep
+      app.kubernetes.io/component: search
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: karakeep
+              app.kubernetes.io/component: server
+      ports:
+        - protocol: TCP
+          port: 7700

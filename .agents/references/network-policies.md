@@ -34,6 +34,8 @@ separately reviewed root OpenTofu plan/apply, not only application GitOps sync.
 | Alertmanager | Traefik/Prometheus/Grafana on 9093; Prometheus on 8080; peers on TCP/UDP 9094 | Unchanged; notification providers |
 | Grafana | Traefik/Prometheus on 3000 | Unchanged; datasources, Dex, dashboard initialization |
 | Dex | Traefik on 5556; Prometheus on 5558 | Unchanged; Google and Kubernetes storage |
+| Karakeep | Traefik on 3000 | Unrestricted; Dex, crawling, OCR downloads, Chrome and search |
+| Karakeep Chrome / Meilisearch | Karakeep server only on 9222 / 7700 | Unrestricted; Chrome fetches saved pages |
 | Atuin | Traefik on 8888; Prometheus on 9001 | CoreDNS TCP/UDP 53 and own database 5432 |
 | Paperless / Atuin CNPG | Owning app on 5432; own cluster/jobs on 5432/8000; CNPG operator on 8000/5432; Prometheus on 9187 | Unchanged; instance management and recovery |
 | ArgoCD server | Traefik and selected ArgoCD controllers on 8080; Prometheus on 8083 | Unchanged |

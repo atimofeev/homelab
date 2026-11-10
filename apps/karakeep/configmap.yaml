@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: karakeep
+  namespace: karakeep
+  labels:
+    app.kubernetes.io/name: karakeep
+data:
+  DATA_DIR: /data
+  NEXTAUTH_URL: https://karakeep.prosto.dev
+  AUTH_TRUSTED_ORIGINS: ""
+  MEILI_ADDR: http://karakeep-meilisearch:7700
+  BROWSER_WEB_URL: http://karakeep-chrome:9222
+  DB_WAL_MODE: "true"
+  DISABLE_SIGNUPS: "false"
+  DISABLE_PASSWORD_AUTH: "true"
+  OAUTH_WELLKNOWN_URL: https://dex.prosto.dev/.well-known/openid-configuration
+  OAUTH_CLIENT_ID: karakeep
+  OAUTH_PROVIDER_NAME: Google
+  OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING: "false"
+  DISABLE_NEW_RELEASE_CHECK: "true"
+  INFERENCE_ENABLE_AUTO_TAGGING: "false"
+  INFERENCE_ENABLE_AUTO_SUMMARIZATION: "false"
+  EMBEDDING_ENABLE_AUTO_INDEXING: "false"

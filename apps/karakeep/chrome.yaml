@@ -1,0 +1,91 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karakeep-chrome
+  namespace: karakeep
+  labels:
+    app.kubernetes.io/name: karakeep
+    app.kubernetes.io/component: chrome
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: karakeep
+      app.kubernetes.io/component: chrome
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: karakeep
+        app.kubernetes.io/component: chrome
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: chrome
+          image: ghcr.io/karakeep-app/karakeep-chrome:154.0.8037.57-r1@sha256:c51a8c8e6c3c1040a50fa0ecfd0b2fc298401b4229262636552458151f6f18fa
+          args:
+            - --disable-gpu
+            - --disable-dev-shm-usage
+            - --hide-scrollbars
+            - --disable-blink-features=AutomationControlled
+            - --window-size=1440,900
+          ports:
+            - name: devtools
+              containerPort: 9222
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          startupProbe:
+            httpGet:
+              path: /json/version
+              port: devtools
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /json/version
+              port: devtools
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /json/version
+              port: devtools
+            periodSeconds: 30
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: karakeep-chrome
+  namespace: karakeep
+spec:
+  selector:
+    app.kubernetes.io/name: karakeep
+    app.kubernetes.io/component: chrome
+  ports:
+    - name: devtools
+      port: 9222
+      targetPort: devtools

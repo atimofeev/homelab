@@ -1,0 +1,106 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karakeep-meilisearch
+  namespace: karakeep
+  annotations:
+    secret.reloader.stakater.com/reload: karakeep-meilisearch
+  labels:
+    app.kubernetes.io/name: karakeep
+    app.kubernetes.io/component: search
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: karakeep
+      app.kubernetes.io/component: search
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: karakeep
+        app.kubernetes.io/component: search
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: meilisearch
+          image: getmeili/meilisearch:v1.41.0@sha256:860fa4baed04ae1c235de870edab0c8006227546dea1bbb6411fbfc5e27cf1db
+          env:
+            - name: MEILI_ENV
+              value: production
+            - name: MEILI_NO_ANALYTICS
+              value: "true"
+            - name: MEILI_DB_PATH
+              value: /meili_data/data.ms
+            - name: MEILI_MAX_INDEXING_MEMORY
+              value: 512MiB
+            - name: MEILI_MAX_INDEXING_THREADS
+              value: "1"
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: karakeep-meilisearch
+                  key: password
+          ports:
+            - name: http
+              containerPort: 7700
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /meili_data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: karakeep-meilisearch
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: karakeep-meilisearch
+  namespace: karakeep
+spec:
+  selector:
+    app.kubernetes.io/name: karakeep
+    app.kubernetes.io/component: search
+  ports:
+    - name: http
+      port: 7700
+      targetPort: http
