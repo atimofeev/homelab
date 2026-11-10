@@ -34,7 +34,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: meilisearch
-          image: getmeili/meilisearch:v1.41.0@sha256:860fa4baed04ae1c235de870edab0c8006227546dea1bbb6411fbfc5e27cf1db
+          image: getmeili/meilisearch:v1.56.2@sha256:9600db22be3fcbf3d506176d3a73dd70a65c5719d9aa1d2837355b75afb8f4fb
           env:
             - name: MEILI_ENV
               value: production
