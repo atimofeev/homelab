@@ -15,10 +15,46 @@ Bookmark storage, read-later, full-text search, and browser-based page capture a
   ExternalSecret so ArgoCD creates the namespace before applying it.
 - Traefik HTTPS HTTPRoute with Homer discovery. No oauth2-proxy middleware.
 
-AI tagging, summaries, and embedding generation are disabled. No paid API keys
-or external AI providers are configured. Full-text search and page capture work
-without AI. CPU/memory requests and memory limits are starting budgets; measure
-imports and crawling before tightening them.
+CPU/memory requests and memory limits are starting budgets; measure imports and
+crawling before tightening them. Full-text search and page capture work without
+AI. The optional AI features are configured through Bitwarden as described below.
+
+## AI Integration
+
+The app-owned `karakeep-ai` ExternalSecret extracts a JSON object from Bitwarden
+Secrets Manager using the shared `bitwarden-secrets-manager` store. Its secret
+ID is recorded in `secrets.yaml`; no API key is stored in Git. The deployment
+loads all extracted keys as environment variables, so keep only AI settings in
+this item. Provider, model, and feature flags live together in Bitwarden, not
+in the ConfigMap. All values must be strings.
+
+Expected Bitwarden value for DeepSeek's direct API:
+
+```json
+{
+  "OPENAI_API_KEY": "YOUR_DEEPSEEK_API_KEY",
+  "OPENAI_BASE_URL": "https://api.deepseek.com",
+  "INFERENCE_TEXT_MODEL": "deepseek-flash",
+  "INFERENCE_IMAGE_MODEL": "deepseek-flash",
+  "INFERENCE_OUTPUT_SCHEMA": "json",
+  "INFERENCE_ENABLE_AUTO_TAGGING": "true",
+  "INFERENCE_ENABLE_AUTO_SUMMARIZATION": "true",
+  "EMBEDDING_ENABLE_AUTO_INDEXING": "false"
+}
+```
+
+Tagging and summaries use the OpenAI-compatible DeepSeek API. Embedding indexing
+is disabled: semantic search needs a separate embedding model/provider. Normal
+Meilisearch full-text indexing remains enabled.
+
+The API key is instance-wide. With registration open, other users can generate
+paid inference requests too. Content processed by AI is sent to DeepSeek.
+
+ESO refreshes the Secret hourly. Reloader restarts the all-in-one web/worker
+deployment when it changes; `Recreate` causes brief downtime. The Secret is
+required, so deployment waits if Bitwarden extraction fails. After syncing,
+check `karakeep-ai` is Ready and test tagging/summarization on one bookmark
+before requesting bulk processing. Do not print Secret data while debugging.
 
 ## Authentication
 

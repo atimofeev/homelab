@@ -3,7 +3,7 @@ externalSecrets:
   storeName: bitwarden-secrets-manager
   refreshInterval: 1h0m0s
   # App-owned ExternalSecrets may also use the Bitwarden store.
-  additionalNamespaces: [dex]
+  additionalNamespaces: [dex, karakeep]
   secrets:
     - name: cloudflare-dns-rw
       namespace: cert-manager
