@@ -24,6 +24,10 @@ spec:
             limits:
               cpu: null
               memory: 128Mi
+          highAvailability:
+            podDisruptionBudget:
+              # Permit maintenance drains of the single operator replica.
+              maxUnavailable: 1
           operator:
             enableGatewayAPI: true
           prometheusRule:
