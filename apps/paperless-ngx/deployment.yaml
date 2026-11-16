@@ -87,6 +87,9 @@ spec:
               path: /
               port: http
               scheme: HTTP
+              httpHeaders:
+                - name: Host
+                  value: paperless.prosto.dev
             initialDelaySeconds: 15
             periodSeconds: 10
             timeoutSeconds: 5
@@ -96,6 +99,9 @@ spec:
               path: /
               port: http
               scheme: HTTP
+              httpHeaders:
+                - name: Host
+                  value: paperless.prosto.dev
             periodSeconds: 30
             timeoutSeconds: 10
             failureThreshold: 5
@@ -104,6 +110,9 @@ spec:
               path: /
               port: http
               scheme: HTTP
+              httpHeaders:
+                - name: Host
+                  value: paperless.prosto.dev
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 5
