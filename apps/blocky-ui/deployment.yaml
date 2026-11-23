@@ -26,7 +26,7 @@ spec:
               memory: 64Mi
             limits:
               memory: 256Mi
-          image: ghcr.io/gabeduartem/blocky-ui:2.2.0
+          image: ghcr.io/gabeduartem/blocky-ui:2.2.1
           securityContext:
             runAsUser: 1001
             runAsGroup: 65533
