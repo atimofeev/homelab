@@ -42,6 +42,8 @@ spec:
               value: "true"
             - name: MEILI_DB_PATH
               value: /meili_data/data.ms
+            - name: MEILI_UPGRADE_DB
+              value: "true"
             - name: MEILI_MAX_INDEXING_MEMORY
               value: 512MiB
             - name: MEILI_MAX_INDEXING_THREADS
