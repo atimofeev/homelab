@@ -4,7 +4,7 @@ talosconfig_path   = "~/.talos/config"
 talos_cluster_name = "homelab"
 talos_api_vip      = "192.168.88.51"
 talos_version      = "v1.14.7"
-kubernetes_version = "v1.37.2"
+kubernetes_version = "v1.37.3"
 talos_config_patches = [
   ({
     machine = {
