@@ -47,10 +47,14 @@ keys and missing schemas fail. No blanket `ignore-missing-schemas` or kind skips
 
 The `apps/**` patch rule uses Renovate-managed PR merging
 (`platformAutomerge: false`), retaining the default requirement for green checks.
-Minor/major and infrastructure updates remain manual. No dependency on GitHub
-native automerge or unconfigured branch protection for Renovate's CI gate.
-Requiring all four checks in GitHub branch protection is still recommended to
-protect manual merges; the workflow does not alter repository settings.
+ArgoCD is excluded by a later rule: `apps/argocd/**` and `infra/argocd.tf` share
+the `argocd dependencies` group and always require manual review, including patches.
+Other application minor/major and infrastructure updates also remain manual.
+No dependency on GitHub native automerge or unconfigured branch protection for
+Renovate's CI gate.
+Require these three checks in GitHub branch protection to protect manual merges.
+Remove the retired `tofu (.)` requirement if configured; the workflow does not
+alter repository settings.
 
 Remote Git sources (currently the Gateway API CRD bundle) are logged but not
 rendered. Kustomize inputs are schema-checked, but builds/generated assets are not

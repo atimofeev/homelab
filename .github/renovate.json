@@ -59,6 +59,23 @@
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": false
+    },
+    {
+      "description": "ArgoCD chart versions are tracked in GitOps; skip the indirect Terraform seed reference",
+      "matchManagers": ["terraform"],
+      "matchFileNames": ["infra/argocd.tf"],
+      "matchDatasources": ["helm"],
+      "matchCurrentValue": "/^\\$\\{/",
+      "enabled": false
+    },
+    {
+      "description": "Review ArgoCD runtime and bootstrap dependencies together; never automerge the GitOps controller",
+      "matchFileNames": ["apps/argocd/**", "infra/argocd.tf"],
+      "groupName": "argocd dependencies",
+      "groupSlug": "argocd-dependencies",
+      "separateMajorMinor": true,
+      "separateMinorPatch": true,
+      "automerge": false
     }
   ],
   "customManagers": [
