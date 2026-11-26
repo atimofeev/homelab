@@ -12,7 +12,7 @@ The homelab already provides everything the stack depends on:
 
 | Component | What exists | Where |
 | --- | --- | --- |
-| GitOps | ArgoCD; root app `argocd-apps` auto-discovers `apps/*/main.yaml` (`recurse`, `include: "*/main.yaml"`); repo `https://github.com/atimofeev/homelab`, `targetRevision: HEAD` | `argocd.tf` |
+| GitOps | ArgoCD; root app `argocd-apps` auto-discovers `apps/*/main.yaml` (`recurse`, `include: "*/main.yaml"`); repo `https://github.com/atimofeev/homelab`, `targetRevision: HEAD` | `apps/argocd-apps/main.yaml` |
 | Secrets | External Secrets Operator 2.0.1 + `bitwarden-sdk-server`; Bitwarden items referenced centrally from values | `apps/external-secrets-operator/main.yaml`, `apps/external-secrets/values.yaml` |
 | Storage | Longhorn 1.12.0; default StorageClass `longhorn` (3 replicas) | `apps/longhorn-operator/main.yaml` |
 | Ingress | Traefik 40.0.0-ea.1, Gateway API, gateway `traefik-gateway` in `traefik` ns | `apps/traefik/main.yaml` |

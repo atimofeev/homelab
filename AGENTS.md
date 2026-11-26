@@ -9,22 +9,23 @@ This project manages a Kubernetes-based homelab environment using a declarative 
   - **MikroTik:** Network configuration managed via the `terraform-routeros/routeros` provider.
   - **Cloudflare:** DNS records and external connectivity managed via the `cloudflare/cloudflare` provider.
 - **GitOps:** ArgoCD watches this repository to sync applications into the cluster.
-  - **Bootstrap:** ArgoCD itself is deployed via OpenTofu (`argocd.tf`) using Helm charts.
-  - **Waves:** Application deployment is organized into waves (`argo-system-wave-*.yaml`) to ensure dependencies are met.
+  - **Bootstrap and self-management:** `infra/argocd.tf` seeds two Helm releases with `ignore_changes = all` and `prevent_destroy = true`. ArgoCD then reconciles itself from `apps/argocd/main.yaml` and its root Application from `apps/argocd-apps/main.yaml`. See `apps/argocd/README.md` for bootstrap and the required existing-state transfer.
+  - **Waves:** Application deployment uses sync-wave annotations in `apps/*/main.yaml`.
 
 ## Directory Structure
 
-- **`/` (Root):** Contains project-wide OpenTofu configurations (ArgoCD bootstrap) and ArgoCD application definitions.
+- **`/` (Root):** Contains project documentation and validation configuration. OpenTofu runs only in `infra/`.
 - **`/infra`:** OpenTofu configurations specifically for provisioning the physical/cloud infrastructure (Talos, Cloudflare, MikroTik).
 - **`/apps`:** Kubernetes manifests for individual applications, organized by service name.
   - `bento-pdf/`, `blocky/`, `cert-manager/`, `longhorn/`, `metallb/`, `vert/`
 
 ## Key Files
 
-- `infra/providers.tf`: Defines required providers (Cloudflare, RouterOS, Talos).
-- `argocd.tf`: Bootstraps ArgoCD and the App of Apps pattern using Helm.
-- `argo-system-wave-*.yaml`: Defines the order in which system applications are deployed.
-- `argo-general.yaml`: Defines general application deployments.
+- `infra/providers.tf`: Defines infrastructure providers and Helm authentication using Talos-generated Kubernetes credentials.
+- `infra/argocd.tf`: Creation-only ArgoCD bootstrap, using the existing infrastructure state and chart values from GitOps manifests.
+- `apps/argocd/main.yaml`: Self-managed ArgoCD Helm chart and local policies.
+- `apps/argocd-apps/main.yaml`: Root Application discovering `apps/*/main.yaml`, including itself.
+- `apps/argocd/README.md`: Fresh-cluster bootstrap and safe transfer of the former root state into infra before applying.
 - `infra/talos.tf`, `infra/cloudflare.tf`, `infra/mikrotik.tf`: Specific infrastructure configurations.
 
 ## Application Conventions
@@ -45,7 +46,7 @@ This project manages a Kubernetes-based homelab environment using a declarative 
 ### Network Policies
 
 - Protect backend pods, not just public routes: Traefik OAuth does not protect direct pod/ClusterIP access. Keep public applications public through Traefik while restricting their internal reachability.
-- Keep workload policies alongside their owning app and include them in its ArgoCD directory/Kustomize sources. ArgoCD bootstrap policies live in root `argocd-network-policies.yaml`, loaded by `argocd.tf`.
+- Keep workload policies alongside their owning app and include them in its ArgoCD directory/Kustomize sources. ArgoCD policies live in `apps/argocd/` and are loaded by its directory source.
 - Do not hardcode node IPs or subnets for API-server traffic. Allow required admission/aggregation ports from any source; restrict separate metrics ports to selected Prometheus pods. Shared API/metrics listeners cannot be separated with L3/L4 rules.
 - Policies are additive: inspect rendered Helm policies alongside handwritten policies. Preserve monitoring, OIDC, replication, bootstrap/recovery jobs, admission, and health probes; do not introduce blanket system-namespace denies or guessed egress allowlists.
 - Read [network policy boundaries and rollout checks](.agents/references/network-policies.md) before changing policies. Keep detailed agent-facing notes under `.agents/references/`, not new root `docs/`, `tests/`, or `templates/` directories.
@@ -66,7 +67,7 @@ To update physical infrastructure or cluster nodes:
 To add or update applications:
 
 1. Create or modify manifests in `apps/<application-name>/`.
-2. Update `argo-*.yaml` files if adding a new application to the GitOps sync.
+2. Define the Application in `apps/<application-name>/main.yaml`; the root Application discovers it automatically.
 3. Commit and push changes. ArgoCD will automatically sync the state.
 
 ## Tech Stack & Tools

@@ -13,20 +13,20 @@ This repository manages a Kubernetes-based homelab environment using a declarati
   - **MikroTik:** Network infrastructure configuration via the `terraform-routeros/routeros` provider.
   - **Cloudflare:** DNS and external connectivity management via the `cloudflare/cloudflare` provider.
 - **GitOps:**
-  - **ArgoCD:** Deployed via Helm charts in `argocd.tf`. It watches this repository to sync applications located in the `apps/` directory.
+  - **ArgoCD:** Seeded automatically by `infra/argocd.tf`, then manages its own Helm chart and root App of Apps from `apps/argocd/` and `apps/argocd-apps/`. Terraform ignores subsequent release changes; no separate application state is needed.
 
 ## Repository Structure
 
-- `/infra`: OpenTofu configurations for provisioning physical/network infrastructure (Talos, MikroTik, Cloudflare).
+- `/infra`: OpenTofu configurations for infrastructure (Talos, MikroTik, Cloudflare) and the creation-only ArgoCD bootstrap.
 - `/apps`: Kubernetes manifests for applications, organized by service name.
-- `argocd.tf`: Bootstraps ArgoCD and the App of Apps pattern.
-- `providers.tf`: Global provider configuration (Kubernetes, Helm).
+- `/apps/argocd`: ArgoCD Helm Application, configuration, and policies.
+- `/apps/argocd-apps`: Root Application discovering every `apps/*/main.yaml`, including itself.
 
 ## Getting Started
 
 1. **Infrastructure:** Navigate to `infra/`, initialize with `tofu init`, and apply configurations.
 2. **Cluster Access:** Use the appropriate `talosconfig` to interact with nodes.
-3. **GitOps:** ArgoCD is bootstrapped via `argocd.tf`. It synchronizes applications in `apps/` based on defined sync waves:
+3. **GitOps:** The infrastructure apply seeds ArgoCD and its root Application. For the existing cluster, [transfer the old release state into infra before applying](apps/argocd/README.md); do not destroy or uninstall it. ArgoCD then synchronizes itself and applications in `apps/` based on defined sync waves:
    - **-25** External Secrets Operator, cert-manager
    - **-20** Secrets & Cert resources
    - **-15** Ingress & Gateway-API

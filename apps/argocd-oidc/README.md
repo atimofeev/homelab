@@ -1,7 +1,7 @@
 # ArgoCD OIDC Credentials
 
 This post-bootstrap Application owns only the `argocd/argocd-dex`
-ExternalSecret. ArgoCD itself remains managed by root OpenTofu configuration.
+ExternalSecret. ArgoCD itself is self-managed by `apps/argocd/main.yaml`.
 The existing Secret name, key, and ArgoCD discovery label are preserved.
 
 ESO CRDs must exist before this Application reconciles. Do not put this resource

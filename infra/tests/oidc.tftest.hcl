@@ -10,6 +10,7 @@ mock_provider "cloudflare" {
 mock_provider "routeros" {}
 mock_provider "local" {}
 mock_provider "http" {}
+mock_provider "helm" {}
 
 mock_provider "talos" {
   mock_resource "talos_cluster_kubeconfig" {

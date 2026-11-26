@@ -9,8 +9,8 @@ limits need substantially more headroom than an idle sample.
 
 - App manifests and Helm values own regular, init, sidecar, and hook resources.
   Do not add duplicate Deployments or modify generated objects directly.
-- `argocd.tf` owns ArgoCD resources and installs
-  `kube-system-resource-policies.yaml` through Helm `extraObjects`.
+- `apps/argocd/main.yaml` owns ArgoCD resources and installs
+  `apps/argocd/kube-system-resource-policies.yaml` through its directory source.
 - `infra/talos.tf` owns real static control-plane resource settings through
   `KubeAPIServerConfig`, `KubeControllerManagerConfig`, and `KubeSchedulerConfig`.
   Mutating mirror Pods does not configure their actual containers.

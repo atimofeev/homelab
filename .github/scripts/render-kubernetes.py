@@ -40,7 +40,7 @@ def load_resources(text):
     for document in yaml.load_all(text, Loader=KubernetesLoader):
         if document is None:
             continue
-        # argocd-network-policies.yaml is a Helm extraObjects list.
+        # Accept both ordinary documents and lists of Kubernetes resources.
         for resource in document if isinstance(document, list) else [document]:
             if (
                 not isinstance(resource, dict)
@@ -182,9 +182,6 @@ def main(output_directory):
         }:
             continue
         resources[str(path.relative_to(ROOT))] = list(load_resources(path.read_text()))
-    resources["argocd-network-policies.yaml"] = list(
-        load_resources((ROOT / "argocd-network-policies.yaml").read_text())
-    )
     api_versions = sorted(
         {
             name

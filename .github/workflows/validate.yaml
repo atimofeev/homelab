@@ -61,7 +61,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        directory: [., infra]
+        directory: [infra]
     env:
       TF_IN_AUTOMATION: "true"
     steps:

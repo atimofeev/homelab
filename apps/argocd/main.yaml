@@ -1,0 +1,116 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-cd
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 10.20.0
+      helm:
+        releaseName: argo-cd
+        valuesObject:
+          global:
+            domain: argocd.prosto.dev
+            # Replace the chart's allow-all server policy with the local policy.
+            networkPolicy:
+              create: false
+          controller:
+            networkPolicy:
+              create: true
+            resources:
+              requests: {cpu: 100m, memory: 512Mi}
+              limits: {memory: 2Gi}
+          repoServer:
+            networkPolicy:
+              create: true
+            resources:
+              requests: {cpu: 25m, memory: 64Mi}
+              limits: {memory: 1Gi}
+            copyutil:
+              resources:
+                requests: {cpu: 10m, memory: 32Mi}
+                limits: {memory: 128Mi}
+          redis:
+            networkPolicy:
+              create: true
+            resources:
+              requests: {cpu: 10m, memory: 32Mi}
+              limits: {memory: 128Mi}
+          notifications:
+            networkPolicy:
+              create: true
+            resources:
+              requests: {cpu: 10m, memory: 32Mi}
+              limits: {memory: 128Mi}
+          applicationSet:
+            resources:
+              requests: {cpu: 10m, memory: 64Mi}
+              limits: {memory: 256Mi}
+          redisSecretInit:
+            resources:
+              requests: {cpu: 10m, memory: 32Mi}
+              limits: {memory: 128Mi}
+          dex:
+            enabled: false
+          configs:
+            params:
+              server.insecure: true
+            cm:
+              url: https://argocd.prosto.dev
+              admin.enabled: "false"
+              users.anonymous.enabled: "false"
+              oidc.config: |
+                "clientID": "argocd"
+                "clientSecret": "$argocd-dex:client-secret"
+                "issuer": "https://dex.prosto.dev"
+                "name": "Google"
+                "requestedScopes":
+                - "openid"
+                - "profile"
+                - "email"
+                - "offline_access"
+            rbac:
+              policy.default: ""
+              policy.csv: g, legalaze94@gmail.com, role:admin
+              scopes: "[email]"
+          server:
+            resources:
+              requests: {cpu: 10m, memory: 64Mi}
+              limits: {memory: 256Mi}
+            ingress:
+              enabled: false
+            httproute:
+              enabled: true
+              annotations:
+                item.homer.rajsingh.info/name: ArgoCD
+                item.homer.rajsingh.info/subtitle: GitOps Continuous Delivery
+                item.homer.rajsingh.info/logo: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/argo-cd.webp
+                service.homer.rajsingh.info/name: System
+                service.homer.rajsingh.info/icon: fas fa-cogs
+              parentRefs:
+                - group: gateway.networking.k8s.io
+                  kind: Gateway
+                  name: traefik-gateway
+                  namespace: traefik
+                  sectionName: websecure
+              hostnames:
+                - argocd.prosto.dev
+    - repoURL: https://github.com/atimofeev/homelab
+      targetRevision: HEAD
+      path: apps/argocd
+      directory:
+        exclude: main.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

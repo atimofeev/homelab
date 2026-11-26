@@ -16,12 +16,15 @@ applications use additional directory sources when needed; exclude `main.yaml`.
 Include Homer dashboard policy in its Kustomization. Do not create separate
 Namespace manifests when ArgoCD can create the destination namespace.
 
-ArgoCD bootstrap is OpenTofu-managed. The pinned chart hardcodes allow-all server
-ingress; another restrictive policy cannot override it. `argocd.tf` disables
-global chart policy creation, explicitly retains controller/repo-server/Redis/
-notifications policies, and loads replacement server/ApplicationSet policies from
-root `argocd-network-policies.yaml` through Helm `extraObjects`. This needs a
-separately reviewed root OpenTofu plan/apply, not only application GitOps sync.
+ArgoCD is self-managed by `apps/argocd/main.yaml`. The pinned chart hardcodes
+allow-all server ingress; another restrictive policy cannot override it. Helm
+values disable global chart policy creation and explicitly retain controller/
+repo-server/Redis/notifications policies. The directory source loads replacement
+server/ApplicationSet policies from `apps/argocd/network-policies.yaml`. Keep
+the Application and Helm release name `argo-cd` to preserve resource identity.
+`infra/argocd.tf` includes the same local policies through Helm `extraObjects` for
+the initial seed; `ignore_changes = all` prevents later Helm reconciliation.
+See `apps/argocd/README.md` before transferring the former root state into infra.
 
 ## Declared Traffic
 
@@ -104,8 +107,8 @@ those metrics independently.
 1. Parse changed YAML and render pinned Helm charts with the application's exact
    release name, namespace, and values. Include directory/Kustomize sources.
 2. Check policy selectors against workload labels and inspect the combined policy
-   union, particularly ArgoCD's replacement allow-all policy. Run `tofu fmt -check
-   argocd.tf` and `tofu validate` for bootstrap changes.
+   union, particularly ArgoCD's replacement allow-all policy. Render the Helm
+   source with its exact values and include both local policy manifests.
 3. Server-dry-run candidate policies and modified Applications. Dry-runs validate
    resources, not actual packet filtering. Do not treat previous validations as
    proof that later edits or deployments work.

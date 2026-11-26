@@ -10,6 +10,19 @@ The infrastructure management is divided into several components:
 - **Mikrotik (RouterOS)**: Configures networking, including Dynamic DNS (IP Cloud).
 - **Talos OS**: Handles machine secrets, image configurations, and cluster access (kubeconfig).
 
+## ArgoCD Bootstrap
+
+`argocd.tf` seeds ArgoCD and the root Application after the Talos cluster is
+healthy. Both Helm releases use `ignore_changes = all` and `prevent_destroy = true`;
+ArgoCD handles subsequent changes. Chart version, values, and policies come from
+`../apps/argocd/`, and the root definition comes from `../apps/argocd-apps/`.
+The Helm provider uses Talos-generated client credentials and the API VIP.
+
+**Before applying to the existing cluster, import its two Helm releases into this
+state and retire their old root-state entries.** Follow the
+[state-transfer procedure](../apps/argocd/README.md). Do not reinstall or destroy
+them. No new bootstrap variables or separate applications backend are needed.
+
 ## Kubernetes API Floating VIP
 
 `talos_api_vip` in `terraform.tfvars` defines the Kubernetes API VIP;
